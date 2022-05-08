@@ -1,0 +1,2 @@
+python train_net.py --config-file configs/coco/instance-segmentation/effi2former.yaml --eval-only MODEL.WEIGHTS ./output/model_0004999.pth
+--config-file configs/coco/instance-segmentation/effi2former.yaml --eval-only MODEL.WEIGHTS ./output/model_0004999.pth
