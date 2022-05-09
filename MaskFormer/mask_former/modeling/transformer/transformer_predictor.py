@@ -12,9 +12,10 @@ from .position_encoding import PositionEmbeddingSine
 from .transformer import Transformer
 
 ##############Mi Codigo###################################
-import numpy as np
+from ...utils.misc import show_image_from_tensor
 
-fname = 0
+# import numpy as np
+# fname = 0
 
 ##############Original###################################
 
@@ -155,13 +156,14 @@ class TransformerPredictor(nn.Module):
             out["pred_masks"] = outputs_seg_masks
 
         ############################################Mi codigo ######################################
+        # show_image_from_tensor(mask_features[0][0].unsqueeze(0).cpu(),
+        #                        'pixel decoder mask')
         # values, indices = outputs_class[-1].max(2)
         # # print(indices.shape)
         # # if 1 in indices:
         # for i in range(100):
         #     if indices[0][i] != 133:
-        #         show_image_from_tensor(mask_features[0][0].unsqueeze(0).cpu(), 'pixel decoder mask_cls_' + str(indices[0][i].item()))
-        #         show_image_from_tensor(outputs_seg_masks[-1][0][0].unsqueeze(0).cpu(), 'mask prediction_cls_' + str(indices[0][i].item()))
+        #         show_image_from_tensor(outputs_seg_masks[-1][0][i].unsqueeze(0).cpu(), 'mask prediction_cls_' + str(indices[0][i].item()))
         #
         # print('ok')
 
@@ -202,15 +204,15 @@ class MLP(nn.Module):
 
 ###########Mi codigo##########################
 
-def show_image_from_tensor(img,level):
-    import matplotlib.pyplot as plt
-    # print('img shape: {}'.format(img.shape))
-    img = img.detach().numpy()#.squeeze()
-    img = np.transpose(img, (1,2,0))
-    global fname
-    plt.figure()
-    plt.imshow(img)
-    # plt.show()
-    plt.savefig('output/imgs/{:0>10d}_type_{}.jpg'.format(fname, level))
-    plt.close()
-    fname += 1
+# def show_image_from_tensor(img,level):
+#     import matplotlib.pyplot as plt
+#     # print('img shape: {}'.format(img.shape))
+#     img = img.detach().numpy()#.squeeze()
+#     img = np.transpose(img, (1,2,0))
+#     global fname
+#     plt.figure()
+#     plt.imshow(img)
+#     # plt.show()
+#     plt.savefig('output/imgs/{:0>10d}_type_{}.jpg'.format(fname, level))
+#     plt.close()
+#     fname += 1

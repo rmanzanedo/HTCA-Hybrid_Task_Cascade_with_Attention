@@ -12,7 +12,7 @@ from detectron2.layers import Conv2d
 
 from .position_encoding import PositionEmbeddingSine
 from .maskformer_transformer_decoder import TRANSFORMER_DECODER_REGISTRY
-
+from ...utils.misc import show_image_from_tensor
 
 class SelfAttentionLayer(nn.Module):
 
@@ -428,6 +428,22 @@ class MultiScaleMaskedTransformerDecoder(nn.Module):
                 predictions_class if self.mask_classification else None, predictions_mask
             )
         }
+        ##################################Mi Codigo##################################################
+        # show_image_from_tensor(mask_features[0][0].unsqueeze(0).cpu(),
+        #                        'pixel decoder mask')
+        # values, indices = predictions_class[-1].max(2)
+        # # print(indices.shape)
+        # # if 1 in indices:
+        # # print(predictions_mask[-1])
+        # for i in range(100):
+        #     if indices[0][i] != 80:
+        #         show_image_from_tensor(predictions_mask[-1][0][i].unsqueeze(0).cpu(),
+        #                                'mask prediction_cls_' + str(indices[0][i].item()))
+
+        # print('ok')
+
+
+
         return out
 
     def forward_prediction_heads(self, output, mask_features, attn_mask_target_size):

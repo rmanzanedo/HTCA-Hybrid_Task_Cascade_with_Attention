@@ -174,7 +174,9 @@ class MaskFormer(nn.Module):
         # print('img: {}'.format(batched_inputs[0]['image']))
         # print(batched_inputs[0].keys())
         features = self.backbone(images.tensor)
+        # print(features['res2'].shape)
         outputs = self.sem_seg_head(features)
+        # print(outputs["pred_masks"].shape)
 
         if self.training:
             # mask classification target

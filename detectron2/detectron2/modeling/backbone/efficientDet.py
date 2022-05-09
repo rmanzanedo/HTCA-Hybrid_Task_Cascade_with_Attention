@@ -18,12 +18,14 @@ from .backbone import Backbone
 from .build import BACKBONE_REGISTRY
 
 import sys
-sys.path.append('/disk2/transformer1')
-sys.path.append('/disk2/transformer1/efficientdet')
+sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet')
 # import efficientdet.model_inspect1 as effi
 from efficientdet import inference
 # import tensorflow.compat.v1 as tf
 import math
+
+from detectron2.utils.visualizer import show_image_from_tensor
 
 
 class EfficientDet(Backbone):
@@ -46,20 +48,36 @@ class EfficientDet(Backbone):
         # self.postprocessing = transforms.ToTensor()
 
     def forward(self, x):
+        # show_image_from_tensor(x[0].cpu(), 'original')
+        # print(torch.max(x), torch.min(x))
+        feats = self.inspector.saved_model_inference_for_transformer(x.cuda(), self.driver, self.stage_names)
 
-        feats = self.inspector.saved_model_inference_for_transformer(x,self.driver, self.stage_names)
-
+        show_image_from_tensor(feats['p2'][0][0].unsqueeze(0), 'output_from_effi')
         dim = x.shape[3]/x.shape[2]
-        # print(type(feats['p2'][0]))
+        # print(dim)
         if dim <= 1:
             for i in self.stage_names:
                 out_dim = feats[i][0].shape
                 # print(out_dim)
+
+                # if i == 'p2':
+                #     feat1 = feats[i][0][:, :, 0:math.ceil(out_dim[-1] * dim)]
+                #     # print(feat1.shape, math.ceil(out_dim[-1] * dim))
+                #     show_image_from_tensor(feat1[0].unsqueeze(0), 'output_from_effi')
+                #     del feat1
                 feats[i] = torch.stack([feats[i][0][:, :, 0:math.ceil(out_dim[-1] * dim)]]).cuda()
+
+
         else:
             for i in self.stage_names:
                 out_dim = feats[i][0].shape
                 # print(out_dim)
+
+                # if i == 'p2':
+                #     feat1 = feats[i][0][:, 0:math.ceil(out_dim[-1] / dim), :]
+                #     # print(feat1.shape, math.ceil(out_dim[-1] / dim))
+                #     show_image_from_tensor(feat1[0].unsqueeze(0), 'output_from_effi')
+                #     del feat1
                 feats[i] = torch.stack([feats[i][0][:, 0:math.ceil(out_dim[-1] / dim), :]]).cuda()
         # print('ok')
 

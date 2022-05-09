@@ -161,7 +161,7 @@ For python-based LazyConfig, use "path.key=value".
     parser.add_argument('--hparams', default='',
                         help='Comma separated k=v pairs of hyperparameters or a module containing attributes to use as hyperparameters.')
     # For saved model.
-    parser.add_argument('--saved_model_dir', default='/disk2/transformer1/efficientdet/saved_model_only_feats/',
+    parser.add_argument('--saved_model_dir', default='/disk2/transformer/efficientdet/saved_model_only_feats/',
                         help='Folder path for saved model.')
     parser.add_argument('--tflite_path', default=None, help='Path for exporting tflite file.')
 
