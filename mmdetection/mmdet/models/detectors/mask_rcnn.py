@@ -15,7 +15,7 @@ class MaskRCNN(TwoStageDetector):
                  test_cfg,
                  neck=None,
                  pretrained=None,
-                 init_cfg=None):
+                 init_cfg=None, inspector=None):
         super(MaskRCNN, self).__init__(
             backbone=backbone,
             neck=neck,

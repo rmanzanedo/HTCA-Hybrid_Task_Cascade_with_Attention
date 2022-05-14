@@ -97,6 +97,10 @@ class StandardRoIHead(BaseRoIHead, BBoxTestMixin, MaskTestMixin):
                     gt_labels[i],
                     feats=[lvl_feat[i][None] for lvl_feat in x])
                 sampling_results.append(sampling_result)
+            # print('results assignation: {}'.format(type(assign_result)))
+            # print('results samplings: {}'.format(type(sampling_result)))
+            # print('num of images per batch: {}'.format(num_imgs))
+            # print('ok')
 
         losses = dict()
         # bbox head forward and loss

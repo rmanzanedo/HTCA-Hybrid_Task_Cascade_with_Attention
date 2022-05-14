@@ -3,7 +3,7 @@ from mmcv.cnn import ConvModule
 
 from mmdet.models.builder import HEADS
 from .fcn_mask_head import FCNMaskHead
-
+from .SAM_centermask import SpatialAttention
 
 @HEADS.register_module()
 class HTCMaskHead(FCNMaskHead):
@@ -18,10 +18,15 @@ class HTCMaskHead(FCNMaskHead):
                 1,
                 conv_cfg=self.conv_cfg,
                 norm_cfg=self.norm_cfg)
+        ############################################Mi codigo#####################################
+        self.spatialAtt = SpatialAttention()
 
     def forward(self, x, res_feat=None, return_logits=True, return_feat=True):
         if res_feat is not None:
             assert self.with_conv_res
+            ############################################Mi codigo#####################################
+            res_feat = self.spatialAtt(res_feat)
+            ############################################Original######################################
             res_feat = self.conv_res(res_feat)
             x = x + res_feat
         for conv in self.convs:

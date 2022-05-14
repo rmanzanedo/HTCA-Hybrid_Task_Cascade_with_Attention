@@ -11,7 +11,7 @@ from .htc_roi_head import HybridTaskCascadeRoIHead
 from .mask_heads import (CoarseMaskHead, FCNMaskHead, FeatureRelayHead,
                          FusedSemanticHead, GlobalContextHead, GridHead,
                          HTCMaskHead, MaskIoUHead, MaskPointHead,
-                         SCNetMaskHead, SCNetSemanticHead)
+                         SCNetMaskHead, SCNetSemanticHead, SpatialAttention)
 from .mask_scoring_roi_head import MaskScoringRoIHead
 from .pisa_roi_head import PISARoIHead
 from .point_rend_roi_head import PointRendRoIHead
@@ -22,6 +22,7 @@ from .shared_heads import ResLayer
 from .sparse_roi_head import SparseRoIHead
 from .standard_roi_head import StandardRoIHead
 from .trident_roi_head import TridentRoIHead
+
 
 __all__ = [
     'BaseRoIHead', 'CascadeRoIHead', 'DoubleHeadRoIHead', 'MaskScoringRoIHead',
