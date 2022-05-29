@@ -52,7 +52,7 @@ class EfficientDet(Backbone):
         # print(torch.max(x), torch.min(x))
         feats = self.inspector.saved_model_inference_for_transformer(x.cuda(), self.driver, self.stage_names)
 
-        show_image_from_tensor(feats['p2'][0][0].unsqueeze(0), 'output_from_effi')
+        # show_image_from_tensor(feats['p2'][0][0].unsqueeze(0), 'output_from_effi')
         dim = x.shape[3]/x.shape[2]
         # print(dim)
         if dim <= 1:

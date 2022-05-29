@@ -130,3 +130,14 @@ def nonzero_tuple(x):
         return x.nonzero().unbind(1)
     else:
         return x.nonzero(as_tuple=True)
+######################################### add centermask #######################
+
+def Max(x):
+    """
+    A wrapper around torch.max in Spatial Attention Module (SAM) to support empty inputs and more features.
+    """
+    if x.numel() == 0:
+        output_shape = [x.shape[0], 1, x.shape[2], x.shape[3]]
+        empty = _NewEmptyTensorOp.apply(x, output_shape)
+        return empty
+    return torch.max(x, dim=1, keepdim=True)[0]

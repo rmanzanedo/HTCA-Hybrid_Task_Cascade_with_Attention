@@ -16,8 +16,8 @@ MODEL:
     PIXEL_DECODER_NAME: "TransformerEncoderPixelDecoder"
     IN_FEATURES: ["p2", "p3", "p4", "p5"]
 #    DEFORMABLE_TRANSFORMER_ENCODER_IN_FEATURES: ["p3", "p4", "p5"]
-#    COMMON_STRIDE: 4
-#    TRANSFORMER_ENC_LAYERS: 6
+    COMMON_STRIDE: 4
+    TRANSFORMER_ENC_LAYERS: 6
   MASK_FORMER:
     TRANSFORMER_DECODER_NAME: "StandardTransformerDecoder"
     TRANSFORMER_IN_FEATURE: "transformer_encoder"

@@ -659,20 +659,47 @@ class ServingDriver(object):
       self.build()
 
     # init session
-    self.sess.run(
-        self.signitures['prediction'],
-        feed_dict={self.signitures['image_arrays']: image_arrays})
+    #########################################################Mi codigo##########################################
+    # self.sess.run(
+    #     self.outputs,
+    #     feed_dict={self.signitures['image_arrays']: image_arrays},
+    #     options=tf.profiler.ProfileOptionBuilder.float_operation())
+    flops = tf.profiler.profile(
+        self.sess.graph,
+        options=tf.profiler.ProfileOptionBuilder.float_operation())
+    parameters = tf.profiler.profile(
+        self.sess.graph,
+        options=tf.profiler.ProfileOptionBuilder
+            .trainable_variables_parameter())
 
+
+    self.sess.run(
+        self.outputs,
+        feed_dict={self.signitures['image_arrays']: image_arrays})
     start = time.perf_counter()
     for _ in range(10):
-      self.sess.run(
-          self.signitures['prediction'],
-          feed_dict={self.signitures['image_arrays']: image_arrays})
+        self.sess.run(
+            self.outputs,
+            feed_dict={self.signitures['image_arrays']: image_arrays})
+
+    print('total parameters: {}'.format(parameters.total_parameters))
+    print('total flops: {}'.format(flops.total_float_ops))
+    #########################################################original##########################################
+
+    # self.sess.run(
+    #     self.signitures['prediction'],
+    #     feed_dict={self.signitures['image_arrays']: image_arrays})
+    # start = time.perf_counter()
+    # for _ in range(10):
+    #   self.sess.run(
+    #       self.signitures['prediction'],
+    #       feed_dict={self.signitures['image_arrays']: image_arrays})
     end = time.perf_counter()
     inference_time = (end - start) / 10
 
     print('Per batch inference time: ', inference_time)
     print('FPS: ', self.batch_size / inference_time)
+    print('batch size:', self.batch_size)
 
     if trace_filename:
       run_options = tf.RunOptions()

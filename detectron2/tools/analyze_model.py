@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import sys
+sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet')
+sys.path.append('/disk2/transformer/detectron2')
 import logging
 import numpy as np
 from collections import Counter

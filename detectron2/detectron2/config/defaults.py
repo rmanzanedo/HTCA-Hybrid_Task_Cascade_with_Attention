@@ -28,6 +28,7 @@ _C.VERSION = 2
 _C.MODEL = CN()
 _C.MODEL.LOAD_PROPOSALS = False
 _C.MODEL.MASK_ON = False
+_C.MODEL.BOX_ON = True
 _C.MODEL.KEYPOINT_ON = False
 _C.MODEL.DEVICE = "cuda"
 _C.MODEL.META_ARCHITECTURE = "GeneralizedRCNN"
@@ -135,6 +136,7 @@ _C.MODEL.BACKBONE.NAME = "build_resnet_backbone"
 # There are 5 stages in ResNet. The first is a convolution, and the following
 # stages are each group of residual blocks.
 _C.MODEL.BACKBONE.FREEZE_AT = 2
+_C.MODEL.BACKBONE.OUT_FEATURES = None
 
 
 # ---------------------------------------------------------------------------- #

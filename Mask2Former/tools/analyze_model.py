@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Modified by Bowen Cheng from https://github.com/facebookresearch/detectron2/blob/main/tools/analyze_model.py
+import sys
+sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet')
+sys.path.append('/disk2/transformer/detectron2')
 
 import logging
 import numpy as np
@@ -12,7 +16,7 @@ from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import CfgNode, LazyConfig, get_cfg, instantiate
 from detectron2.data import build_detection_test_loader
 from detectron2.engine import default_argument_parser
-from detectron2.modeling import build_model
+from detectron2.modeling import build_model, build_model1
 from detectron2.projects.deeplab import add_deeplab_config
 from detectron2.utils.analysis import (
     FlopCountAnalysis,
@@ -28,6 +32,18 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 # fmt: on
 
 from mask2former import add_maskformer2_config
+
+
+import efficientdet.model_inspect1 as effi
+# from efficientdet import inference
+import tensorflow.compat.v1 as tf
+# import parser1
+
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 logger = logging.getLogger("detectron2")
 
@@ -49,10 +65,11 @@ def setup(args):
     return cfg
 
 
-def do_flop(cfg):
+def do_flop(cfg, inspector = None):
     if isinstance(cfg, CfgNode):
         data_loader = build_detection_test_loader(cfg, cfg.DATASETS.TEST[0])
-        model = build_model(cfg)
+        # model = build_model(cfg)
+        model = build_model1(cfg, inspector)
         DetectionCheckpointer(model).load(cfg.MODEL.WEIGHTS)
     else:
         data_loader = instantiate(cfg.dataloader.test)
@@ -84,7 +101,7 @@ def do_flop(cfg):
     )
 
 
-def do_activation(cfg):
+def do_activation(cfg, inspector = None):
     if isinstance(cfg, CfgNode):
         data_loader = build_detection_test_loader(cfg, cfg.DATASETS.TEST[0])
         model = build_model(cfg)
@@ -113,7 +130,7 @@ def do_activation(cfg):
     )
 
 
-def do_parameter(cfg):
+def do_parameter(cfg, inspector = None):
     if isinstance(cfg, CfgNode):
         model = build_model(cfg)
     else:
@@ -121,7 +138,7 @@ def do_parameter(cfg):
     logger.info("Parameter Count:\n" + parameter_count_table(model, max_depth=5))
 
 
-def do_structure(cfg):
+def do_structure(cfg, inspector = None):
     if isinstance(cfg, CfgNode):
         model = build_model(cfg)
     else:
@@ -162,9 +179,50 @@ $ ./analyze_model.py --num-inputs 100 --tasks flop \\
         action="store_true",
         help="use fixed input size when calculating flops",
     )
+    parser.add_argument("--model_name", default="efficientdet-d7", help="Model.",)
+    parser.add_argument("--logdir", default="log", help="log directory.")
+    parser.add_argument("--runmode", default="saved_model_infer", help="Run mode: {freeze, bm, dry}")
+    parser.add_argument("--trace_filename", default=None, help="Trace file name.")
+
+    parser.add_argument("--threads", default=0, help="Number of threads.")
+    parser.add_argument("--bm_runs", default=10, help="Number of benchmark runs.")
+    parser.add_argument("--tensorrt", default=None, help="TensorRT mode: {None, FP32, FP16, INT8}")
+    parser.add_argument("--delete_logdir", default=True, help="Whether to delete logdir.")
+    parser.add_argument("--freeze", default=False, help="Freeze graph.")
+    parser.add_argument("--xla", default=False, help="Run with xla optimization.")
+    parser.add_argument("--batch_size", default=1, help="Batch size for inference.")
+
+    parser.add_argument("--ckpt_path", default=None, help="checkpoint dir used for eval.")
+    parser.add_argument("--export_ckpt", default=None, help="Path for exporting new models.")
+
+    parser.add_argument("--hparams", default="",
+                        help="Comma separated k=v pairs of hyperparameters or a module containing attributes to use as hyperparameters.")
+    # For saved model.
+    parser.add_argument("--saved_model_dir", default="/disk2/transformer/efficientdet/saved_model_only_feats/",
+                        help="Folder path for saved model.")
+    parser.add_argument("--tflite_path", default=None, help="Path for exporting tflite file.")
+
     args = parser.parse_args()
     assert not args.eval_only
     assert args.num_gpus == 1
+
+    '''setup efficientdet'''
+    if 'effi' in args.config_file:
+        tf.disable_eager_execution()
+
+        inspector = effi.ModelInspector(
+            model_name=args.model_name,
+            logdir=args.logdir,
+            tensorrt=args.tensorrt,
+            use_xla=args.xla,
+            ckpt_path=args.ckpt_path,
+            export_ckpt=args.export_ckpt,
+            saved_model_dir=args.saved_model_dir,
+            tflite_path=args.tflite_path,
+            batch_size=args.batch_size,
+            hparams=args.hparams)
+    else:
+        inspector = None
 
     cfg = setup(args)
 
@@ -174,4 +232,4 @@ $ ./analyze_model.py --num-inputs 100 --tasks flop \\
             "activation": do_activation,
             "parameter": do_parameter,
             "structure": do_structure,
-        }[task](cfg)
+        }[task](cfg, inspector)

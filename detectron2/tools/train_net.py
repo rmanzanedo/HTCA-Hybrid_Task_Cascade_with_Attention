@@ -16,6 +16,11 @@ this file as an example of how to use the library.
 You may want to write your own script with your datasets and other customizations.
 """
 
+import sys
+sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet1')
+sys.path.append('/disk2/transformer/detectron2')
+
 import logging
 import os
 from collections import OrderedDict
@@ -38,6 +43,16 @@ from detectron2.evaluation import (
 )
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
+import efficientdet1.model_inspect1 as effi
+# from efficientdet import inference
+import tensorflow.compat.v1 as tf
+# import parser1
+
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 def build_evaluator(cfg, dataset_name, output_folder=None):
     """
@@ -121,7 +136,7 @@ def setup(args):
     return cfg
 
 
-def main(args):
+def main(inspector_effi,args):
     cfg = setup(args)
 
     if args.eval_only:
@@ -141,7 +156,10 @@ def main(args):
     consider writing your own training loop (see plain_train_net.py) or
     subclassing the trainer.
     """
-    trainer = Trainer(cfg)
+    if cfg.MODEL.BACKBONE.NAME == 'build_efficientDet_with_detecttions_backbone':
+        trainer = Trainer(cfg, inspector_effi)
+    else:
+        trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)
     if cfg.TEST.AUG.ENABLED:
         trainer.register_hooks(
@@ -153,11 +171,29 @@ def main(args):
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
     print("Command Line Args:", args)
+
+    if 'effi' in args.config_file:
+        tf.disable_eager_execution()
+
+        inspector = effi.ModelInspector(
+            model_name=args.model_name,
+            logdir=args.logdir,
+            tensorrt=args.tensorrt,
+            use_xla=args.xla,
+            ckpt_path=args.ckpt_path,
+            export_ckpt=args.export_ckpt,
+            saved_model_dir=args.saved_model_dir,
+            tflite_path=args.tflite_path,
+            batch_size=args.batch_size,
+            hparams=args.hparams)
+    else:
+        inspector = None
     launch(
         main,
         args.num_gpus,
         num_machines=args.num_machines,
         machine_rank=args.machine_rank,
         dist_url=args.dist_url,
+        inspector_effi=inspector,
         args=(args,),
     )

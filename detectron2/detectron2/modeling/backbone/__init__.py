@@ -16,5 +16,10 @@ from .efficientDet import (
     EfficientDet,
     build_efficientDet_backbone,
 )
+
+from .efficientDet_with_detection import (
+    EfficientDet_with_detections,
+    build_efficientDet_with_detecttions_backbone,
+)
 __all__ = [k for k in globals().keys() if not k.startswith("_")]
 # TODO can expose more resnet blocks after careful consideration

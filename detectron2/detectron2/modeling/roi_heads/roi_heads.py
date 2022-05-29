@@ -478,6 +478,7 @@ class Res5ROIHeads(ROIHeads):
             [features[f] for f in self.in_features], proposal_boxes
         )
         predictions = self.box_predictor(box_features.mean(dim=[2, 3]))
+        # print(predictions)
 
         if self.training:
             del features
@@ -543,10 +544,10 @@ class StandardROIHeads(ROIHeads):
     def __init__(
         self,
         *,
-        box_in_features: List[str],
-        box_pooler: ROIPooler,
-        box_head: nn.Module,
-        box_predictor: nn.Module,
+        box_in_features: List[str]= None,
+        box_pooler: ROIPooler= None,
+        box_head: nn.Module= None,
+        box_predictor: nn.Module= None,
         mask_in_features: Optional[List[str]] = None,
         mask_pooler: Optional[ROIPooler] = None,
         mask_head: Optional[nn.Module] = None,
@@ -578,13 +579,18 @@ class StandardROIHeads(ROIHeads):
         """
         super().__init__(**kwargs)
         # keep self.in_features for backward compatibility
-        self.in_features = self.box_in_features = box_in_features
-        self.box_pooler = box_pooler
-        self.box_head = box_head
-        self.box_predictor = box_predictor
+
+        self.box_on = box_in_features is not None
+        if self.box_on:
+            self.in_features = self.box_in_features = box_in_features
+            self.box_pooler = box_pooler
+            self.box_head = box_head
+            self.box_predictor = box_predictor
 
         self.mask_on = mask_in_features is not None
         if self.mask_on:
+            if not self.box_on:
+                self.in_features = mask_in_features
             self.mask_in_features = mask_in_features
             self.mask_pooler = mask_pooler
             self.mask_head = mask_head
@@ -616,6 +622,8 @@ class StandardROIHeads(ROIHeads):
 
     @classmethod
     def _init_box_head(cls, cfg, input_shape):
+        if not cfg.MODEL.BOX_ON:
+            return {}
         # fmt: off
         in_features       = cfg.MODEL.ROI_HEADS.IN_FEATURES
         pooler_resolution = cfg.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
@@ -732,7 +740,10 @@ class StandardROIHeads(ROIHeads):
         del images
         if self.training:
             assert targets, "'targets' argument is required during training"
+            # print('proposals:', proposals)
+            # print('targets: ', targets)
             proposals = self.label_and_sample_proposals(proposals, targets)
+            # print('final:', proposals)
         del targets
 
         if self.training:
@@ -742,6 +753,7 @@ class StandardROIHeads(ROIHeads):
             # predicted by the box head.
             losses.update(self._forward_mask(features, proposals))
             losses.update(self._forward_keypoint(features, proposals))
+            # print(losses)
             return proposals, losses
         else:
             pred_instances = self._forward_box(features, proposals)
@@ -794,6 +806,8 @@ class StandardROIHeads(ROIHeads):
             In training, a dict of losses.
             In inference, a list of `Instances`, the predicted instances.
         """
+        if not self.box_on:
+            return {}
         features = [features[f] for f in self.box_in_features]
         box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
         box_features = self.box_head(box_features)
@@ -840,7 +854,9 @@ class StandardROIHeads(ROIHeads):
         if self.mask_pooler is not None:
             features = [features[f] for f in self.mask_in_features]
             boxes = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
-            features = self.mask_pooler(features, boxes)
+            # print(len(features))
+            # print(features[0].shape)
+            features = self.mask_pooler(features, boxes, self.training)
         else:
             features = {f: features[f] for f in self.mask_in_features}
         return self.mask_head(features, instances)

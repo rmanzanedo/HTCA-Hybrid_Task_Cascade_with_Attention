@@ -477,6 +477,7 @@ class RPN(nn.Module):
         proposals = self.predict_proposals(
             anchors, pred_objectness_logits, pred_anchor_deltas, images.image_sizes
         )
+        # print(proposals)
         return proposals, losses
 
     def predict_proposals(

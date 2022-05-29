@@ -17,7 +17,7 @@ Registered object must return instance of :class:`Backbone`.
 """
 
 
-def build_backbone(cfg, input_shape=None):
+def build_backbone(cfg, input_shape=None, inspector_effi=None):
     """
     Build a backbone from `cfg.MODEL.BACKBONE.NAME`.
 

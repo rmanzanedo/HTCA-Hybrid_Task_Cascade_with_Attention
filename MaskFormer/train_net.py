@@ -41,8 +41,8 @@ from mask_former import (
 )
 
 import sys
-sys.path.append('/disk2/transformer')
-sys.path.append('/disk2/transformer/efficientdet')
+sys.path.append('/')
+sys.path.append('//efficientdet')
 import efficientdet.model_inspect1 as effi
 # from efficientdet import inference
 import tensorflow.compat.v1 as tf

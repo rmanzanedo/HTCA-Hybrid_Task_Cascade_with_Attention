@@ -92,6 +92,8 @@ def find_top_rpn_proposals(
         boxes = Boxes(topk_proposals[n])
         scores_per_img = topk_scores[n]
         lvl = level_ids
+        # print(lvl)
+        # quit()
 
         valid_mask = torch.isfinite(boxes.tensor).all(dim=1) & torch.isfinite(scores_per_img)
         if not valid_mask.all():
@@ -123,6 +125,8 @@ def find_top_rpn_proposals(
         res.proposal_boxes = boxes[keep]
         res.objectness_logits = scores_per_img[keep]
         results.append(res)
+    # print(results)
+    # quit()
     return results
 
 

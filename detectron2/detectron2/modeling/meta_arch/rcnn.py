@@ -11,15 +11,16 @@ from detectron2.structures import ImageList, Instances
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.logger import log_first_n
 
-from ..backbone import Backbone, build_backbone
+from ..backbone import Backbone, build_backbone, build_backbone1
 from ..postprocessing import detector_postprocess
 from ..proposal_generator import build_proposal_generator
 from ..roi_heads import build_roi_heads
 from .build import META_ARCH_REGISTRY
+from .build_effi import META_ARCH_REGISTRY1
 
 __all__ = ["GeneralizedRCNN", "ProposalNetwork"]
 
-
+@META_ARCH_REGISTRY1.register()
 @META_ARCH_REGISTRY.register()
 class GeneralizedRCNN(nn.Module):
     """
@@ -68,8 +69,11 @@ class GeneralizedRCNN(nn.Module):
         ), f"{self.pixel_mean} and {self.pixel_std} have different shapes!"
 
     @classmethod
-    def from_config(cls, cfg):
-        backbone = build_backbone(cfg)
+    def from_config(cls, cfg, inspector_effi=None):
+        if inspector_effi is not None:
+            backbone = build_backbone1(cfg, inspector_effi=inspector_effi)
+        else:
+            backbone = build_backbone(cfg)
         return {
             "backbone": backbone,
             "proposal_generator": build_proposal_generator(cfg, backbone.output_shape()),
@@ -151,10 +155,15 @@ class GeneralizedRCNN(nn.Module):
         else:
             gt_instances = None
 
-        features = self.backbone(images.tensor)
+        if not hasattr(self.backbone, 'inspector'):
+            features = self.backbone(images.tensor)
+        else:
+            features, proposals = self.backbone(images.tensor, self.training)
 
         if self.proposal_generator is not None:
             proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
+        elif hasattr(self.backbone, 'inspector'):
+            proposal_losses = {}
         else:
             assert "proposals" in batched_inputs[0]
             proposals = [x["proposals"].to(self.device) for x in batched_inputs]

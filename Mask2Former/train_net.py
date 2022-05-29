@@ -12,6 +12,11 @@ try:
 except:
     pass
 
+import sys
+sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet')
+sys.path.append('/disk2/transformer/detectron2')
+
 import copy
 import itertools
 import logging
@@ -58,9 +63,7 @@ from mask2former import (
     add_maskformer2_config,
 )
 
-import sys
-sys.path.append('/disk2/transformer')
-sys.path.append('/disk2/transformer/efficientdet')
+
 import efficientdet.model_inspect1 as effi
 # from efficientdet import inference
 import tensorflow.compat.v1 as tf

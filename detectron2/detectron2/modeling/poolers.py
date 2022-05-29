@@ -19,6 +19,58 @@ https://github.com/pytorch/pytorch/issues/41412
 __all__ = ["ROIPooler"]
 
 
+
+######################################## codigo de centermask ################################################
+import sys
+
+def _img_area(instance):
+
+    device = instance.pred_classes.device
+    image_size = instance.image_size
+    area = torch.as_tensor(image_size[0] * image_size[1], dtype=torch.float, device=device)
+    tmp = torch.zeros((len(instance.pred_classes), 1), dtype=torch.float, device=device)
+
+    return (area + tmp).squeeze(1)
+
+def assign_boxes_to_levels_by_ratio(instances, min_level, max_level, is_train=False):
+    """
+    Map each box in `instances` to a feature map level index by adaptive ROI mapping function
+    in CenterMask paper and return the assignment
+    vector.
+
+    Args:
+        instances (list[Instances]): the per-image instances to train/predict masks.
+        min_level (int): Smallest feature map level index. The input is considered index 0,
+            the output of stage 1 is index 1, and so.
+        max_level (int): Largest feature map level index.
+
+    Returns:
+        A tensor of length M, where M is the total number of boxes aggregated over all
+            N batch images. The memory layout corresponds to the concatenation of boxes
+            from all images. Each element is the feature map index, as an offset from
+            `self.min_level`, for the corresponding box (so value i means the box is at
+            `self.min_level + i`).
+    """
+    eps = sys.float_info.epsilon
+    if is_train:
+        box_lists = [x.proposal_boxes for x in instances]
+    else:
+        box_lists = [x.pred_boxes for x in instances]
+    box_areas = cat([boxes.area() for boxes in box_lists])
+    img_areas = cat([_img_area(instance_i) for instance_i in instances])
+
+    # Eqn.(2) in the CenterMask paper
+    level_assignments = torch.ceil(
+        max_level - torch.log2(img_areas / box_areas + eps)
+    )
+
+    # clamp level to (min, max), in case the box size is too large or too small
+    # for the available feature maps
+    level_assignments = torch.clamp(level_assignments, min=min_level, max=max_level)
+    return level_assignments.to(torch.int64) - min_level
+
+############################# Original ####################################################
+
 def assign_boxes_to_levels(
     box_lists: List[Boxes],
     min_level: int,
@@ -182,7 +234,7 @@ class ROIPooler(nn.Module):
         assert canonical_box_size > 0
         self.canonical_box_size = canonical_box_size
 
-    def forward(self, x: List[torch.Tensor], box_lists: List[Boxes]):
+    def forward(self, x: List[torch.Tensor], box_lists: List[Boxes], training = False):
         """
         Args:
             x (list[Tensor]): A list of feature maps of NCHW shape, with scales matching those
@@ -223,6 +275,10 @@ class ROIPooler(nn.Module):
         if num_level_assignments == 1:
             return self.level_poolers[0](x[0], pooler_fmt_boxes)
 
+        ############################## Mi codigo para centermask#######################################
+        # level_assignments = assign_boxes_to_levels_by_ratio(box_lists,self.min_level, self.max_level, training)
+
+        ############################# Original ###########################################################
         level_assignments = assign_boxes_to_levels(
             box_lists, self.min_level, self.max_level, self.canonical_box_size, self.canonical_level
         )

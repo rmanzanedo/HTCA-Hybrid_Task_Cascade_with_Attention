@@ -14,6 +14,8 @@ from .backbone import (
     build_backbone1,
     EfficientDet,
     build_efficientDet_backbone,
+    EfficientDet_with_detections,
+    build_efficientDet_with_detecttions_backbone
 )
 from .meta_arch import (
     META_ARCH_REGISTRY,
