@@ -3,7 +3,7 @@
 
 import sys
 sys.path.append('/disk2/transformer')
-sys.path.append('/disk2/transformer/efficientdet')
+sys.path.append('/disk2/transformer/efficientdet1')
 sys.path.append('/disk2/transformer/detectron2')
 import logging
 import numpy as np
@@ -15,13 +15,24 @@ from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import CfgNode, LazyConfig, get_cfg, instantiate
 from detectron2.data import build_detection_test_loader
 from detectron2.engine import default_argument_parser
-from detectron2.modeling import build_model
+from detectron2.modeling import build_model, build_model1
 from detectron2.utils.analysis import (
     FlopCountAnalysis,
     activation_count_operators,
     parameter_count_table,
 )
 from detectron2.utils.logger import setup_logger
+
+import efficientdet1.model_inspect1 as effi
+# from efficientdet import inference
+import tensorflow.compat.v1 as tf
+# import parser1
+
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 logger = logging.getLogger("detectron2")
 
@@ -41,10 +52,14 @@ def setup(args):
     return cfg
 
 
-def do_flop(cfg):
+def do_flop(cfg, inspector=None):
     if isinstance(cfg, CfgNode):
         data_loader = build_detection_test_loader(cfg, cfg.DATASETS.TEST[0])
-        model = build_model(cfg)
+        if cfg.MODEL.BACKBONE.NAME == 'build_efficientDet_with_detecttions_backbone':
+            model = build_model1(cfg, inspector)
+        else:
+            model = build_model(cfg)
+
         DetectionCheckpointer(model).load(cfg.MODEL.WEIGHTS)
     else:
         data_loader = instantiate(cfg.dataloader.test)
@@ -72,7 +87,7 @@ def do_flop(cfg):
     )
 
 
-def do_activation(cfg):
+def do_activation(cfg, inspector=None):
     if isinstance(cfg, CfgNode):
         data_loader = build_detection_test_loader(cfg, cfg.DATASETS.TEST[0])
         model = build_model(cfg)
@@ -101,15 +116,19 @@ def do_activation(cfg):
     )
 
 
-def do_parameter(cfg):
+def do_parameter(cfg, inspector=None):
     if isinstance(cfg, CfgNode):
-        model = build_model(cfg)
+        # model = build_model(cfg)
+        if cfg.MODEL.BACKBONE.NAME == 'build_efficientDet_with_detecttions_backbone':
+            model = build_model1(cfg, inspector)
+        else:
+            model = build_model(cfg)
     else:
         model = instantiate(cfg.model)
     logger.info("Parameter Count:\n" + parameter_count_table(model, max_depth=5))
 
 
-def do_structure(cfg):
+def do_structure(cfg, inspector=None):
     if isinstance(cfg, CfgNode):
         model = build_model(cfg)
     else:
@@ -154,10 +173,27 @@ $ ./analyze_model.py --num-inputs 100 --tasks flop \\
 
     cfg = setup(args)
 
+    if 'effi' in args.config_file:
+        tf.disable_eager_execution()
+
+        inspector = effi.ModelInspector(
+            model_name=args.model_name,
+            logdir=args.logdir,
+            tensorrt=args.tensorrt,
+            use_xla=args.xla,
+            ckpt_path=args.ckpt_path,
+            export_ckpt=args.export_ckpt,
+            saved_model_dir=args.saved_model_dir,
+            tflite_path=args.tflite_path,
+            batch_size=args.batch_size,
+            hparams=args.hparams)
+    else:
+        inspector = None
+
     for task in args.tasks:
         {
             "flop": do_flop,
             "activation": do_activation,
             "parameter": do_parameter,
             "structure": do_structure,
-        }[task](cfg)
+        }[task](cfg, inspector)

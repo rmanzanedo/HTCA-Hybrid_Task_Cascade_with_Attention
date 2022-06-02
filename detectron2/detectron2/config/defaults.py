@@ -350,6 +350,7 @@ _C.MODEL.ROI_MASK_HEAD.NORM = ""
 _C.MODEL.ROI_MASK_HEAD.CLS_AGNOSTIC_MASK = False
 # Type of pooling operation applied to the incoming feature map for each RoI
 _C.MODEL.ROI_MASK_HEAD.POOLER_TYPE = "ROIAlignV2"
+_C.MODEL.ROI_MASK_HEAD.SAM_LEVEL_ASSIGN = False
 
 
 # ---------------------------------------------------------------------------- #

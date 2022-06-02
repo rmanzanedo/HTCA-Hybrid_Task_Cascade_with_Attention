@@ -555,6 +555,7 @@ class StandardROIHeads(ROIHeads):
         keypoint_pooler: Optional[ROIPooler] = None,
         keypoint_head: Optional[nn.Module] = None,
         train_on_pred_boxes: bool = False,
+        sam: bool = False,
         **kwargs,
     ):
         """
@@ -591,6 +592,7 @@ class StandardROIHeads(ROIHeads):
         if self.mask_on:
             if not self.box_on:
                 self.in_features = mask_in_features
+            self.sam = sam
             self.mask_in_features = mask_in_features
             self.mask_pooler = mask_pooler
             self.mask_head = mask_head
@@ -607,6 +609,9 @@ class StandardROIHeads(ROIHeads):
     def from_config(cls, cfg, input_shape):
         ret = super().from_config(cfg)
         ret["train_on_pred_boxes"] = cfg.MODEL.ROI_BOX_HEAD.TRAIN_ON_PRED_BOXES
+        ##########################################Mi codigo##################################################
+        ret['sam'] = cfg.MODEL.ROI_MASK_HEAD.SAM_LEVEL_ASSIGN
+        ###########################################Original################################################
         # Subclasses that have not been updated to use from_config style construction
         # may have overridden _init_*_head methods. In this case, those overridden methods
         # will not be classmethods and we need to avoid trying to call them here.
@@ -807,7 +812,10 @@ class StandardROIHeads(ROIHeads):
             In inference, a list of `Instances`, the predicted instances.
         """
         if not self.box_on:
-            return {}
+            if self.training:
+                return {}
+            else:
+                return proposals
         features = [features[f] for f in self.box_in_features]
         box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
         box_features = self.box_head(box_features)
@@ -853,10 +861,13 @@ class StandardROIHeads(ROIHeads):
 
         if self.mask_pooler is not None:
             features = [features[f] for f in self.mask_in_features]
-            boxes = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
+            # if self.sam:
+            #     boxes = instances
+            # else:
+            #     boxes = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
             # print(len(features))
             # print(features[0].shape)
-            features = self.mask_pooler(features, boxes, self.training)
+            features = self.mask_pooler(features, instances, self.training)
         else:
             features = {f: features[f] for f in self.mask_in_features}
         return self.mask_head(features, instances)

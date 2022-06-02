@@ -188,10 +188,10 @@ def add_ground_truth_to_proposals_single_image(
     gt_proposal.proposal_boxes = gt_boxes
     gt_proposal.objectness_logits = gt_logits
 
-    for key in proposals.get_fields().keys():
-        assert gt_proposal.has(
-            key
-        ), "The attribute '{}' in `proposals` does not exist in `gt`".format(key)
+    # for key in proposals.get_fields().keys():
+    #     assert gt_proposal.has(
+    #         key
+    #     ), "The attribute '{}' in `proposals` does not exist in `gt`".format(key)
 
     # NOTE: Instances.cat only use fields from the first item. Extra fields in latter items
     # will be thrown away.

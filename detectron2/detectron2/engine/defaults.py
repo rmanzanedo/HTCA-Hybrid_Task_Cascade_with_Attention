@@ -142,28 +142,28 @@ For python-based LazyConfig, use "path.key=value".
     )
     # efficiendet
 
-    parser.add_argument('--model_name', default='efficientdet-d7', help='Model.')
-    parser.add_argument('--logdir', default='log', help='log directory.')
-    parser.add_argument('--runmode', default='saved_model_infer', help='Run mode: {freeze, bm, dry}')
-    parser.add_argument('--trace_filename', default=None, help='Trace file name.')
-
-    parser.add_argument('--threads', default=0, help='Number of threads.')
-    parser.add_argument('--bm_runs', default=10, help='Number of benchmark runs.')
-    parser.add_argument('--tensorrt', default=None, help='TensorRT mode: {None, FP32, FP16, INT8}')
-    parser.add_argument('--delete_logdir', default=True, help='Whether to delete logdir.')
-    parser.add_argument('--freeze', default=False, help='Freeze graph.')
-    parser.add_argument('--xla', default=False, help='Run with xla optimization.')
-    parser.add_argument('--batch_size', default=1, help='Batch size for inference.')
-
-    parser.add_argument('--ckpt_path', default=None, help='checkpoint dir used for eval.')
-    parser.add_argument('--export_ckpt', default=None, help='Path for exporting new models.')
-
-    parser.add_argument('--hparams', default='',
-                        help='Comma separated k=v pairs of hyperparameters or a module containing attributes to use as hyperparameters.')
-    # For saved model.
-    parser.add_argument('--saved_model_dir', default='/disk2/transformer/efficientdet/saved_model_only_feats/',
-                        help='Folder path for saved model.')
-    parser.add_argument('--tflite_path', default=None, help='Path for exporting tflite file.')
+    # parser.add_argument('--model_name', default='efficientdet-d7', help='Model.')
+    # parser.add_argument('--logdir', default='log', help='log directory.')
+    # parser.add_argument('--runmode', default='saved_model_infer', help='Run mode: {freeze, bm, dry}')
+    # parser.add_argument('--trace_filename', default=None, help='Trace file name.')
+    #
+    # parser.add_argument('--threads', default=0, help='Number of threads.')
+    # parser.add_argument('--bm_runs', default=10, help='Number of benchmark runs.')
+    # parser.add_argument('--tensorrt', default=None, help='TensorRT mode: {None, FP32, FP16, INT8}')
+    # parser.add_argument('--delete_logdir', default=True, help='Whether to delete logdir.')
+    # parser.add_argument('--freeze', default=False, help='Freeze graph.')
+    # parser.add_argument('--xla', default=False, help='Run with xla optimization.')
+    # parser.add_argument('--batch_size', default=1, help='Batch size for inference.')
+    #
+    # parser.add_argument('--ckpt_path', default=None, help='checkpoint dir used for eval.')
+    # parser.add_argument('--export_ckpt', default=None, help='Path for exporting new models.')
+    #
+    # parser.add_argument('--hparams', default='',
+    #                     help='Comma separated k=v pairs of hyperparameters or a module containing attributes to use as hyperparameters.')
+    # # For saved model.
+    # parser.add_argument('--saved_model_dir', default='/disk2/transformer/efficientdet/saved_model_only_feats/',
+    #                     help='Folder path for saved model.')
+    # parser.add_argument('--tflite_path', default=None, help='Path for exporting tflite file.')
 
     return parser
 
@@ -489,7 +489,7 @@ class DefaultTrainer(TrainerBase):
             # Here the default print/log frequency of each writer is used.
             # run writers in the end, so that evaluation metrics are written
             ########## Mi codigo ###########
-            ret.append(hooks.PeriodicWriter(self.build_writers(), period=2))
+            ret.append(hooks.PeriodicWriter(self.build_writers(), period=20))
         return ret
 
     def build_writers(self):

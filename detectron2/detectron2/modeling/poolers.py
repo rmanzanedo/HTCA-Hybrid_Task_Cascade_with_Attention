@@ -6,7 +6,7 @@ from torch import nn
 from torchvision.ops import RoIPool
 
 from detectron2.layers import ROIAlign, ROIAlignRotated, cat, nonzero_tuple, shapes_to_tensor
-from detectron2.structures import Boxes
+from detectron2.structures import Boxes, Instances
 
 """
 To export ROIPooler to torchscript, in this file, variables that should be annotated with
@@ -25,10 +25,17 @@ import sys
 
 def _img_area(instance):
 
-    device = instance.pred_classes.device
-    image_size = instance.image_size
-    area = torch.as_tensor(image_size[0] * image_size[1], dtype=torch.float, device=device)
-    tmp = torch.zeros((len(instance.pred_classes), 1), dtype=torch.float, device=device)
+    if hasattr(instance, 'pred_classes'):
+        device = instance.pred_classes.device
+        image_size = instance.image_size
+        area = torch.as_tensor(image_size[0] * image_size[1], dtype=torch.float, device=device)
+        tmp = torch.zeros((len(instance.pred_classes), 1), dtype=torch.float, device=device)
+    else:
+        device = instance.gt_classes.device
+        image_size = instance.image_size
+        area = torch.as_tensor(image_size[0] * image_size[1], dtype=torch.float, device=device)
+        tmp = torch.zeros((len(instance.gt_classes), 1), dtype=torch.float, device=device)
+
 
     return (area + tmp).squeeze(1)
 
@@ -53,7 +60,9 @@ def assign_boxes_to_levels_by_ratio(instances, min_level, max_level, is_train=Fa
     """
     eps = sys.float_info.epsilon
     if is_train:
+        # print(instances)
         box_lists = [x.proposal_boxes for x in instances]
+        # box_lists = instances
     else:
         box_lists = [x.pred_boxes for x in instances]
     box_areas = cat([boxes.area() for boxes in box_lists])
@@ -234,7 +243,7 @@ class ROIPooler(nn.Module):
         assert canonical_box_size > 0
         self.canonical_box_size = canonical_box_size
 
-    def forward(self, x: List[torch.Tensor], box_lists: List[Boxes], training = False):
+    def forward(self, x: List[torch.Tensor], instances: List[Instances], training = False):
         """
         Args:
             x (list[Tensor]): A list of feature maps of NCHW shape, with scales matching those
@@ -250,6 +259,7 @@ class ROIPooler(nn.Module):
                 boxes aggregated over all N batch images and C is the number of channels in `x`.
         """
         num_level_assignments = len(self.level_poolers)
+        box_lists = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
 
         assert isinstance(x, list) and isinstance(
             box_lists, list
@@ -274,15 +284,15 @@ class ROIPooler(nn.Module):
 
         if num_level_assignments == 1:
             return self.level_poolers[0](x[0], pooler_fmt_boxes)
-
         ############################## Mi codigo para centermask#######################################
-        # level_assignments = assign_boxes_to_levels_by_ratio(box_lists,self.min_level, self.max_level, training)
-
+        level_assignments = assign_boxes_to_levels_by_ratio(instances, self.min_level, self.max_level, training)
         ############################# Original ###########################################################
-        level_assignments = assign_boxes_to_levels(
-            box_lists, self.min_level, self.max_level, self.canonical_box_size, self.canonical_level
-        )
 
+        # level_assignments = assign_boxes_to_levels(
+        #     box_lists, self.min_level, self.max_level, self.canonical_box_size, self.canonical_level
+        # )
+        # print(level_assignments)
+        # quit()
         num_boxes = pooler_fmt_boxes.size(0)
         num_channels = x[0].shape[1]
         output_size = self.output_size[0]

@@ -5,7 +5,9 @@ from torch import nn
 from torch.nn import functional as F
 
 from detectron2.layers import Conv2d, ConvTranspose2d, ShapeSpec, get_norm, Max
-from .mask_head import ROI_MASK_HEAD_REGISTRY
+# from detectron2.utils.registry import Registry
+# from .mask_head import ROI_MASK_HEAD_REGISTRY
+from .mask_head import ROI_MASK_HEAD_REGISTRY, BaseMaskRCNNHead
 # from .layers import Max
 
 
@@ -29,7 +31,7 @@ class SpatialAttention(nn.Module):
 
 
 @ROI_MASK_HEAD_REGISTRY.register()
-class SpatialAttentionMaskHead(nn.Module):
+class SpatialAttentionMaskHead(BaseMaskRCNNHead, nn.Sequential):
     """
     A mask head with several conv layers and spatial attention module 
     in CenterMask paper, plus an upsample layer (with `ConvTranspose2d`).
@@ -89,7 +91,7 @@ class SpatialAttentionMaskHead(nn.Module):
         if self.predictor.bias is not None:
             nn.init.constant_(self.predictor.bias, 0)
 
-    def forward(self, x):
+    def layers(self, x):
         for layer in self.conv_norm_relus:
             x = layer(x)
         x = self.spatialAtt(x)

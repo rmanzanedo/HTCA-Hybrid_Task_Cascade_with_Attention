@@ -26,4 +26,6 @@ from .fast_rcnn import FastRCNNOutputLayers
 
 from . import cascade_rcnn  # isort:skip
 
+from .sam import SpatialAttentionMaskHead
+
 __all__ = list(globals().keys())

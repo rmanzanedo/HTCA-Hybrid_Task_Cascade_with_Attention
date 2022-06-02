@@ -14,8 +14,9 @@ MODEL:
     IN_FEATURES: ["p3", "p4", "p5" ]
   ROI_MASK_HEAD:
     NAME: "SpatialAttentionMaskHead"
+    SAM_LEVEL_ASSIGN: True
 #  RESNETS:
 #    DEPTH: 50
   BOX_ON: False
 SOLVER:
-  IMS_PER_BATCH: 50
+  IMS_PER_BATCH: 25

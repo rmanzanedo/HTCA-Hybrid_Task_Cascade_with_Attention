@@ -206,11 +206,18 @@ class GeneralizedRCNN(nn.Module):
         assert not self.training
 
         images = self.preprocess_image(batched_inputs)
-        features = self.backbone(images.tensor)
+
+        if not hasattr(self.backbone, 'inspector'):
+            features = self.backbone(images.tensor)
+        else:
+            features, proposals = self.backbone(images.tensor, self.training)
+        # features = self.backbone(images.tensor)
 
         if detected_instances is None:
             if self.proposal_generator is not None:
                 proposals, _ = self.proposal_generator(images, features, None)
+            elif hasattr(self.backbone, 'inspector'):
+                pass
             else:
                 assert "proposals" in batched_inputs[0]
                 proposals = [x["proposals"].to(self.device) for x in batched_inputs]
