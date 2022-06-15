@@ -1,0 +1,2 @@
+python tools/train_net.py --config-file configs/COCO-InstanceSegmentation/effi_mask_rcnn.yaml --model_name=efficientdet-d6 --ckpt_path=../efficientdet1/efficientdet-d6 --saved_model_dir=../efficientdet1/saved_model_d6 --eval-only MODEL.WEIGHTS output_effimask/model_0044999.pth
+python tools/train_net.py --config-file configs/COCO-InstanceSegmentation/effi_mask_rcnn.yaml --model_name=efficientdet-d7 --ckpt_path=../efficientdet1/efficientdet-d7 --saved_model_dir=../efficientdet1/saved_model_d7 --eval-only MODEL.WEIGHTS output_effimask/model_0044999.pth

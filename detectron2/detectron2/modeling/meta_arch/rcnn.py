@@ -216,13 +216,17 @@ class GeneralizedRCNN(nn.Module):
         if detected_instances is None:
             if self.proposal_generator is not None:
                 proposals, _ = self.proposal_generator(images, features, None)
+                # print(proposals)
+                # quit()
             elif hasattr(self.backbone, 'inspector'):
                 pass
             else:
                 assert "proposals" in batched_inputs[0]
                 proposals = [x["proposals"].to(self.device) for x in batched_inputs]
+                # pass
 
             results, _ = self.roi_heads(images, features, proposals, None)
+
         else:
             detected_instances = [x.to(self.device) for x in detected_instances]
             results = self.roi_heads.forward_with_given_boxes(features, detected_instances)

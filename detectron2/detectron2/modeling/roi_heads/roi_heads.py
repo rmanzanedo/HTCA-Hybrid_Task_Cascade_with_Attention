@@ -40,6 +40,8 @@ def build_roi_heads(cfg, input_shape):
     Build ROIHeads defined by `cfg.MODEL.ROI_HEADS.NAME`.
     """
     name = cfg.MODEL.ROI_HEADS.NAME
+    if name == "PrecomputedProposals":
+        return None
     return ROI_HEADS_REGISTRY.get(name)(cfg, input_shape)
 
 
@@ -762,9 +764,13 @@ class StandardROIHeads(ROIHeads):
             return proposals, losses
         else:
             pred_instances = self._forward_box(features, proposals)
+            # print(pred_instances)
+            # quit()
             # During inference cascaded prediction is used: the mask and keypoints heads are only
             # applied to the top scoring box detections.
             pred_instances = self.forward_with_given_boxes(features, pred_instances)
+            # print(pred_instances)
+            # quit()
             return pred_instances, {}
 
     def forward_with_given_boxes(
@@ -817,7 +823,10 @@ class StandardROIHeads(ROIHeads):
             else:
                 return proposals
         features = [features[f] for f in self.box_in_features]
-        box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
+        ############################################### mi codigo ######################################
+        box_features = self.box_pooler(features, proposals)
+        ################################################Original##################################
+        # box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
         box_features = self.box_head(box_features)
         predictions = self.box_predictor(box_features)
         del box_features

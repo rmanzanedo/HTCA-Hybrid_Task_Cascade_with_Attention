@@ -349,10 +349,10 @@ def _generate_detections_tf(cls_outputs,
   ############################################Mi codigo ###############################################################
   detections = tf.stack([
       tf.cast(tf.tile(image_id, tf.shape(top_detection_idx)), tf.float32),
-      tf.clip_by_value(boxes[:, 1], 0, image_size[0]) * image_scale,
-      tf.clip_by_value(boxes[:, 0], 0, image_size[1]) * image_scale,
-      tf.clip_by_value(boxes[:, 3], 0, image_size[0]) * image_scale,
-      tf.clip_by_value(boxes[:, 2], 0, image_size[1]) * image_scale,
+      tf.clip_by_value(boxes[:, 1], 0, image_size[1]) * image_scale,
+      tf.clip_by_value(boxes[:, 0], 0, image_size[0]) * image_scale,
+      tf.clip_by_value(boxes[:, 3], 0, image_size[1]) * image_scale,
+      tf.clip_by_value(boxes[:, 2], 0, image_size[0]) * image_scale,
       scores,
       tf.cast(tf.gather(classes, top_detection_idx) + 1, tf.float32)
   ], axis=1)

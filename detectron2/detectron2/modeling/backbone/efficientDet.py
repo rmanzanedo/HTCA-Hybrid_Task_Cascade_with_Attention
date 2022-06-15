@@ -50,6 +50,7 @@ class EfficientDet(Backbone):
     def forward(self, x):
         # show_image_from_tensor(x[0].cpu(), 'original')
         # print(torch.max(x), torch.min(x))
+        # print(x.shape)
         feats = self.inspector.saved_model_inference_for_transformer(x.cuda(), self.driver, self.stage_names)
 
         # show_image_from_tensor(feats['p2'][0][0].unsqueeze(0), 'output_from_effi')

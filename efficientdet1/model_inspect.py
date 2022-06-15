@@ -551,6 +551,7 @@ def main(_):
 
 
 if __name__ == '__main__':
-  logging.set_verbosity(logging.WARNING)
+  # logging.set_verbosity(logging.WARNING)
+  logging.set_verbosity(logging.INFO)
   tf.disable_eager_execution()
   app.run(main)

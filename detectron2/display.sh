@@ -1,0 +1,1 @@
+tensorboard --logdir_spec=effimask:output_effimask/test1,Effisam:output_effisam/test1

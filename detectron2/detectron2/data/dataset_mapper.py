@@ -9,6 +9,7 @@ from detectron2.config import configurable
 
 from . import detection_utils as utils
 from . import transforms as T
+from PIL import Image
 
 """
 This file contains the default mapping that's applied to "dataset dicts".
@@ -163,6 +164,7 @@ class DatasetMapper:
         aug_input = T.AugInput(image, sem_seg=sem_seg_gt)
         transforms = self.augmentations(aug_input)
         image, sem_seg_gt = aug_input.image, aug_input.sem_seg
+        # Image.fromarray(image).convert("RGB").save("art3.png")
 
         image_shape = image.shape[:2]  # h, w
         # Pytorch's dataloader is efficient on torch.Tensor due to shared-memory,

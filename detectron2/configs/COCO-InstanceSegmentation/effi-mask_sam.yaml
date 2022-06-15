@@ -1,6 +1,7 @@
 _BASE_: "../Base-RCNN-FPN.yaml"
 MODEL:
 #  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  PIXEL_MEAN: [0, 0, 0]
   BACKBONE:
     NAME: "build_efficientDet_with_detecttions_backbone"
     OUT_FEATURES: [ "p3", "p4", "p5" ]
@@ -19,4 +20,6 @@ MODEL:
 #    DEPTH: 50
   BOX_ON: False
 SOLVER:
-  IMS_PER_BATCH: 25
+  IMS_PER_BATCH: 1
+INPUT:
+  FORMAT: "RGB"

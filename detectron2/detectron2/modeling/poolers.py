@@ -29,12 +29,12 @@ def _img_area(instance):
         device = instance.pred_classes.device
         image_size = instance.image_size
         area = torch.as_tensor(image_size[0] * image_size[1], dtype=torch.float, device=device)
-        tmp = torch.zeros((len(instance.pred_classes), 1), dtype=torch.float, device=device)
+        tmp = torch.zeros((len(instance), 1), dtype=torch.float, device=device)
     else:
-        device = instance.gt_classes.device
+        device = 'cuda:0' #instance.gt_classes.device
         image_size = instance.image_size
         area = torch.as_tensor(image_size[0] * image_size[1], dtype=torch.float, device=device)
-        tmp = torch.zeros((len(instance.gt_classes), 1), dtype=torch.float, device=device)
+        tmp = torch.zeros((len(instance), 1), dtype=torch.float, device=device)
 
 
     return (area + tmp).squeeze(1)
@@ -59,12 +59,17 @@ def assign_boxes_to_levels_by_ratio(instances, min_level, max_level, is_train=Fa
             `self.min_level + i`).
     """
     eps = sys.float_info.epsilon
-    if is_train:
-        # print(instances)
-        box_lists = [x.proposal_boxes for x in instances]
-        # box_lists = instances
-    else:
+    # if is_train:
+    #     # print(instances)
+    #     box_lists = [x.proposal_boxes for x in instances]
+    #     # box_lists = instances
+    # else:
+    #     box_lists = [x.pred_boxes for x in instances]
+    if hasattr(instances[0],'pred_boxes'):
         box_lists = [x.pred_boxes for x in instances]
+    else:
+        box_lists = [x.proposal_boxes for x in instances]
+
     box_areas = cat([boxes.area() for boxes in box_lists])
     img_areas = cat([_img_area(instance_i) for instance_i in instances])
 
@@ -259,7 +264,11 @@ class ROIPooler(nn.Module):
                 boxes aggregated over all N batch images and C is the number of channels in `x`.
         """
         num_level_assignments = len(self.level_poolers)
-        box_lists = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
+        # box_lists = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
+        if hasattr(instances[0], 'pred_boxes'):
+            box_lists = [x.pred_boxes for x in instances]
+        else:
+            box_lists = [x.proposal_boxes for x in instances]
 
         assert isinstance(x, list) and isinstance(
             box_lists, list

@@ -40,6 +40,9 @@ from absl import logging
 import numpy as np
 import PIL.Image
 
+import sys
+sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet1')
 from pycocotools import mask
 import tensorflow.compat.v1 as tf
 from dataset import label_map_util

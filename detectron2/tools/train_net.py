@@ -140,7 +140,11 @@ def main(inspector_effi,args):
     cfg = setup(args)
 
     if args.eval_only:
-        model = Trainer.build_model(cfg)
+        if cfg.MODEL.BACKBONE.NAME == 'build_efficientDet_with_detecttions_backbone':
+            model = Trainer.build_model(cfg, inspector_effi)
+        else:
+            model = Trainer.build_model(cfg)
+
         DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(
             cfg.MODEL.WEIGHTS, resume=args.resume
         )

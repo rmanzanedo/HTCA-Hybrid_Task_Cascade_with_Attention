@@ -620,6 +620,63 @@ class ServingDriver(object):
             'boxes': box_outputs,
             'class': class_outputs,
         }
+
+        ########################################################Mi codigo ######################################
+
+        feat_dict = {'d0': ['fpn_cells/cell_2/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b0/blocks_2/Add:0'],
+                     'd1': ['fpn_cells/cell_3/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b1/blocks_4/Add:0'],
+                     'd2': ['fpn_cells/cell_4/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b2/blocks_4/Add:0'],
+                     'd3': ['fpn_cells/cell_5/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b3/blocks_4/Add:0'],
+                     'd4': ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b4/blocks_5/Add:0'],
+                     'd5': ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b5/blocks_7/Add:0'],
+                     'd6': ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b6/blocks_8/Add:0'],
+                     'd7': ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b6/blocks_8/Add:0']}
+
+        features = feat_dict[self.model_name[-2:]]
+        self.outputs = [features, self.signitures['prediction']]
+
+        ##################################################Original##################################################
+
         return self.signitures
 
     def visualize(self, image, prediction, **kwargs):
@@ -726,6 +783,7 @@ class ServingDriver(object):
         if not self.sess:
             self.build()
         # [features, boxes,scores]
+        # Image.fromarray(image_arrays[0]).convert("RGB").save("art.png")
         if feat:
             pred = self.sess.run(
                 self.outputs,
@@ -746,7 +804,7 @@ class ServingDriver(object):
         self.signitures = {
             'image_files': 'image_files:0',
             'image_arrays': 'image_arrays:0',
-            # 'prediction': 'detections:0',
+            'prediction': 'detections:0',
             # 'feats': 'fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
         }
         ################################################ Mi codigo##############################################
@@ -755,16 +813,72 @@ class ServingDriver(object):
         # features = ['fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0', 'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0', 'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0','fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0', 'efficientnet-b6/blocks_8/Add:0']
         # boxes = ['box_net/box-predict/BiasAdd:0','box_net/box-predict_1/BiasAdd:0', 'box_net/box-predict_2/BiasAdd:0','box_net/box-predict_3/BiasAdd:0','box_net/box-predict_4/BiasAdd:0']
         # scores = ['class_net/class-predict/BiasAdd:0','class_net/class-predict_1/BiasAdd:0','class_net/class-predict_2/BiasAdd:0','class_net/class-predict_3/BiasAdd:0', 'class_net/class-predict_4/BiasAdd:0']
-        det = 'detections:0'
+        # det = 'detections:0'
         # self.outputs= [features, det] #, boxes, scores]
 
+        # effi-d0 feats
+        # features = ['fpn_cells/cell_2/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #              'fpn_cells/cell_2/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #              'fpn_cells/cell_2/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #              'fpn_cells/cell_2/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #              'fpn_cells/cell_2/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #              'efficientnet-b0/blocks_2/Add:0']
+
+        # effi-d1 feats
+        # features = ['fpn_cells/cell_3/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_3/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_3/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_3/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_3/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #             'efficientnet-b1/blocks_4/Add:0']
+
+        # effi-d2 feats
+        # features = ['fpn_cells/cell_4/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_4/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_4/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_4/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_4/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #             'efficientnet-b2/blocks_4/Add:0']
+
         # effi-d3 feats
-        features = ['fpn_cells/cell_5/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
-                               'fpn_cells/cell_5/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
-                               'fpn_cells/cell_5/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
-                               'fpn_cells/cell_5/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
-                               'fpn_cells/cell_5/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
-                               'efficientnet-b3/blocks_4/Add:0']
+        # features = ['fpn_cells/cell_5/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #                        'fpn_cells/cell_5/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #                        'fpn_cells/cell_5/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #                        'fpn_cells/cell_5/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #                        'fpn_cells/cell_5/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #                        'efficientnet-b3/blocks_4/Add:0']
+
+        # effi-d4 feats
+        # features = ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #             'efficientnet-b4/blocks_5/Add:0']
+
+        # effi-d5 feats
+        # features = ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #             'efficientnet-b5/blocks_7/Add:0']
+
+        # effi-d6 feats
+        # features = ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #             'efficientnet-b6/blocks_8/Add:0']
+
+        # effi-d7 feats
+        # features = ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+        #             'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+        #             'efficientnet-b6/blocks_8/Add:0']
 
         # boxes = ['box_net/box-predict/BiasAdd:0', 'box_net/box-predict_1/BiasAdd:0', 'box_net/box-predict_2/BiasAdd:0',
         #          'box_net/box-predict_3/BiasAdd:0', 'box_net/box-predict_4/BiasAdd:0']
@@ -774,9 +888,60 @@ class ServingDriver(object):
         #           'class_net/class-predict_4/BiasAdd:0']
         # self.outputs = features_maskformer
 
+        feat_dict = {'d0': ['fpn_cells/cell_2/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_2/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b0/blocks_2/Add:0'],
+                     'd1': ['fpn_cells/cell_3/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_3/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b1/blocks_4/Add:0'],
+                     'd2': ['fpn_cells/cell_4/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_4/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b2/blocks_4/Add:0'],
+                     'd3': ['fpn_cells/cell_5/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_5/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b3/blocks_4/Add:0'],
+                     'd4': ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b4/blocks_5/Add:0'],
+                     'd5': ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b5/blocks_7/Add:0'],
+                     'd6': ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b6/blocks_8/Add:0'],
+                     'd7': ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                            'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                            'efficientnet-b6/blocks_8/Add:0']}
+
+        features = feat_dict[saved_model_dir_or_frozen_graph[-2:]]
+
 
         ## det structure = [[image_ids, ymin, xmin, ymax, xmax, nmsed_scores, classes]]
-        self.outputs= [features, det]
+        self.outputs= [features, self.signitures['prediction']]
         ########################################################################################################
         # Load saved model if it is a folder.
         if tf.io.gfile.isdir(saved_model_dir_or_frozen_graph):
@@ -893,7 +1058,7 @@ class InferenceDriver(object):
             if params['data_format'] == 'channels_first':
                 images = tf.transpose(images, [0, 3, 1, 2])
             # Build model.
-            class_outputs, box_outputs = build_model(self.model_name, images,
+            class_outputs, box_outputs, _ = build_model(self.model_name, images,
                                                      **self.params)
             restore_ckpt(
                 sess,
@@ -929,3 +1094,36 @@ class InferenceDriver(object):
                 logging.info('writing file to %s', output_image_path)
 
             return predictions
+
+
+class InferencesDriver(object):
+    """A driver for doing batch inference.
+
+  Example usage:
+
+   driver = inference.InferenceDriver('efficientdet-d0', '/tmp/efficientdet-d0')
+   driver.inference('/tmp/*.jpg', '/tmp/outputdir')
+
+  """
+
+    def __init__(self,
+                 model_name: Text,
+                 ckpt_path: Text,
+                 model_params: Dict[Text, Any] = None):
+        """Initialize the inference driver.
+
+    Args:
+      model_name: target model name, such as efficientdet-d0.
+      ckpt_path: checkpoint path, such as /tmp/efficientdet-d0/.
+      model_params: model parameters for overriding the config.
+    """
+        self.model_name = model_name
+        self.ckpt_path = ckpt_path
+        self.params = hparams_config.get_detection_config(model_name).as_dict()
+        if model_params:
+            self.params.update(model_params)
+        self.params.update(dict(is_training_bn=False))
+        self.label_id_mapping = parse_label_id_mapping(
+            self.params.get('label_id_mapping', None))
+
+        self.disable_pyfun = True

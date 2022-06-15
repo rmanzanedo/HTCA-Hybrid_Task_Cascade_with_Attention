@@ -126,16 +126,18 @@ class ModelInspector(object):
 
   def saved_model_inference_for_transformer(self, imgs, driver, layers, type='train', **kwargs):
 
-      preprocessing = transforms.ToPILImage()
+      # preprocessing = transforms.ToPILImage()
       postprocessing = transforms.ToTensor()
       get_features = True
       output = {}
       # feats = []
       raw_images = []
       for img in imgs:
-          x = preprocessing(img.squeeze().cpu())
-          # raw_images.append(np.array(x, dtype='uint8'))
-          x = [np.array(x, dtype='uint8')]
+          # x = preprocessing(img.squeeze().cpu())
+          # # raw_images.append(np.array(x, dtype='uint8'))
+          # x = [np.array(x, dtype='uint8')]
+          x = img.squeeze().cpu().numpy().transpose(1, 2, 0)
+          x = [x.astype(np.uint8)]
           detections_bs = driver.serve_images(x, get_features)[2:]
           detections_bs.reverse()
           for k, i in zip(layers, detections_bs):

@@ -126,7 +126,7 @@ class ModelInspector(object):
 
   def saved_model_inference_for_transformer(self, imgs, driver, layers, tipo='train', **kwargs):
 
-      preprocessing = transforms.ToPILImage()
+      # preprocessing = transforms.ToPILImage()
       postprocessing = transforms.ToTensor()
       get_features = True
       output = {}
@@ -134,9 +134,15 @@ class ModelInspector(object):
       # feats = []
       # raw_images = []
       for n, img in enumerate(imgs):
-          x = preprocessing(img.squeeze().cpu())
+          # x = preprocessing(img.squeeze().cpu())
+          x = img.squeeze().cpu().numpy().transpose(1, 2, 0)
+          # x = preprocessing(img.cpu())
           # raw_images.append(np.array(x, dtype='uint8'))
-          x = [np.array(x, dtype='uint8')]
+          # Image.fromarray(x).convert("RGB").save("art1.png")
+          # x.save("art1.png")
+          # x = [np.array(x, dtype='uint8')]
+          x = [x.astype(np.uint8)]
+          # Image.fromarray(x[0]).convert("RGB").save("art1.png")
           detections_feat, detections_bs = driver.serve_images(x, get_features)#[2:]
           # x= ty
           # print(len(detections_feat))
@@ -586,6 +592,7 @@ def main(args, img_list):
 
 
 if __name__ == '__main__':
-  logging.set_verbosity(logging.WARNING)
+  # logging.set_verbosity(logging.WARNING)
+  logging.set_verbosity(logging.INFO)
   tf.disable_eager_execution()
   app.run(main)

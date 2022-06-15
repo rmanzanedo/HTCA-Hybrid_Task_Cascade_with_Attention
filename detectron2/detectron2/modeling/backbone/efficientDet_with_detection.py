@@ -39,6 +39,7 @@ coco_id_mapping = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10,
                    86: 76, 87: 77, 88: 78, 89: 79, 90: 80}
 
 
+
 def add_to_dict(d, k, v):
     if k in d.keys():
         d[k].append(v)
@@ -54,11 +55,20 @@ class EfficientDet_with_detections(Backbone):
     def __init__(self, inspector, driver, out_features=None, num_classes=None):
         super().__init__()
 
+        model_feats = [{'p2': 24, 'p3': 64, 'p4': 64, 'p5': 64, 'p6': 64, 'p7': 64},
+                       {'p2': 24, 'p3': 88, 'p4': 88, 'p5': 88, 'p6': 88, 'p7': 88},
+                       {'p2': 24, 'p3': 112, 'p4': 112, 'p5': 112, 'p6': 112, 'p7': 112},
+                       {'p2': 32, 'p3': 160, 'p4': 160, 'p5': 160, 'p6': 160, 'p7': 160},
+                       {'p2': 32, 'p3': 224, 'p4': 224, 'p5': 224, 'p6': 224, 'p7': 224},
+                       {'p2': 40, 'p3': 288, 'p4': 288, 'p5': 288, 'p6': 288, 'p7': 288},
+                       {'p2': 40, 'p3': 384, 'p4': 384, 'p5': 384, 'p6': 384, 'p7': 384},
+                       {'p2': 40, 'p3': 384, 'p4': 384, 'p5': 384, 'p6': 384, 'p7': 384}]
         self.num_classes = num_classes
 
         self._out_feature_strides = {'p2': 4, 'p3': 8, 'p4': 16, 'p5': 32, 'p6': 64, 'p7': 128}
         # self._out_feature_channels = {'p2': 40, 'p3': 384, 'p4': 384, 'p5': 384, 'p6': 384, 'p7': 384}
-        self._out_feature_channels = {'p2': 32, 'p3': 160, 'p4': 160, 'p5': 160, 'p6': 160, 'p7': 160}
+        # self._out_feature_channels = {'p2': 32, 'p3': 160, 'p4': 160, 'p5': 160, 'p6': 160, 'p7': 160}
+        self._out_feature_channels = model_feats[int(inspector.model_name[-1])]
 
         self._out_features = out_features
 
@@ -71,7 +81,7 @@ class EfficientDet_with_detections(Backbone):
 
     def forward(self, x, training):
         # show_image_from_tensor(x[0].cpu(), 'original')
-        # print(torch.max(x), torch.min(x))
+        # print(x.shape)
         ## det structure = [[image_ids, xmin, ymin, xmax, ymax, nmsed_scores, classes]]
         # feats structure = [features, det]
         feats, detections = self.inspector.saved_model_inference_for_transformer(x.cuda(), self.driver,
@@ -120,7 +130,7 @@ class EfficientDet_with_detections(Backbone):
                 # quit()
                 coco_clases = []
                 for i in detections[img_det][:, 6]:
-                    coco_clases.append(coco_id_mapping[i])
+                    coco_clases.append(coco_id_mapping[i]-1)
 
                 boxes = Boxes(torch.from_numpy(detections[img_det][:, 1:5]).cuda())
                 scores_per_img = torch.from_numpy(detections[img_det][:, 5]).cuda()
@@ -140,7 +150,7 @@ class EfficientDet_with_detections(Backbone):
                 # quit()
                 coco_clases = []
                 for i in detections[img_det][:, 6]:
-                    coco_clases.append(coco_id_mapping[i])
+                    coco_clases.append(coco_id_mapping[i]-1)
 
                 boxes = Boxes(torch.from_numpy(detections[img_det][:, 1:5]).cuda())
                 scores_per_img = torch.from_numpy(detections[img_det][:, 5]).cuda()
@@ -182,6 +192,6 @@ def build_efficientDet_with_detecttions_backbone(cfg, input_shape, inspector=Non
         use_xla=inspector.use_xla,
         model_params=inspector.model_config.as_dict())
 
-    driver.load(inspector.saved_model_dir)
+    # driver.load(inspector.saved_model_dir)
 
     return EfficientDet_with_detections(inspector, driver, cfg.MODEL.BACKBONE.OUT_FEATURES)
