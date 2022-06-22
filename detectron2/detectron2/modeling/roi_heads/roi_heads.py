@@ -740,6 +740,7 @@ class StandardROIHeads(ROIHeads):
         features: Dict[str, torch.Tensor],
         proposals: List[Instances],
         targets: Optional[List[Instances]] = None,
+        scales: Optional[List] = None,
     ) -> Tuple[List[Instances], Dict[str, torch.Tensor]]:
         """
         See :class:`ROIHeads.forward`.
@@ -758,7 +759,10 @@ class StandardROIHeads(ROIHeads):
             # Usually the original proposals used by the box head are used by the mask, keypoint
             # heads. But when `self.train_on_pred_boxes is True`, proposals will contain boxes
             # predicted by the box head.
-            losses.update(self._forward_mask(features, proposals))
+            if scales is None:
+                losses.update(self._forward_mask(features, proposals))
+            else:
+                losses.update(self._forward_mask(features, proposals, scales))
             losses.update(self._forward_keypoint(features, proposals))
             # print(losses)
             return proposals, losses
@@ -768,13 +772,17 @@ class StandardROIHeads(ROIHeads):
             # quit()
             # During inference cascaded prediction is used: the mask and keypoints heads are only
             # applied to the top scoring box detections.
-            pred_instances = self.forward_with_given_boxes(features, pred_instances)
+            if scales is None:
+                pred_instances = self.forward_with_given_boxes(features, pred_instances)
+            else:
+                pred_instances = self.forward_with_given_boxes(features, pred_instances, scales)
+
             # print(pred_instances)
             # quit()
             return pred_instances, {}
 
     def forward_with_given_boxes(
-        self, features: Dict[str, torch.Tensor], instances: List[Instances]
+        self, features: Dict[str, torch.Tensor], instances: List[Instances], scales: Optional[List] = None
     ) -> List[Instances]:
         """
         Use the given boxes in `instances` to produce other (non-box) per-ROI outputs.
@@ -784,6 +792,7 @@ class StandardROIHeads(ROIHeads):
         Test-time augmentation also uses this.
 
         Args:
+            scales:
             features: same as in `forward()`
             instances (list[Instances]): instances to predict other outputs. Expect the keys
                 "pred_boxes" and "pred_classes" to exist.
@@ -796,7 +805,12 @@ class StandardROIHeads(ROIHeads):
         assert not self.training
         assert instances[0].has("pred_boxes") and instances[0].has("pred_classes")
 
-        instances = self._forward_mask(features, instances)
+        if scales is None:
+            instances = self._forward_mask(features, instances)
+        else:
+            instances = self._forward_mask(features, instances, scales)
+
+        # instances = self._forward_mask(features, instances)
         instances = self._forward_keypoint(features, instances)
         return instances
 
@@ -846,7 +860,7 @@ class StandardROIHeads(ROIHeads):
             pred_instances, _ = self.box_predictor.inference(predictions, proposals)
             return pred_instances
 
-    def _forward_mask(self, features: Dict[str, torch.Tensor], instances: List[Instances]):
+    def _forward_mask(self, features: Dict[str, torch.Tensor], instances: List[Instances], scales: Optional[List] = None):
         """
         Forward logic of the mask prediction branch.
 
@@ -876,7 +890,10 @@ class StandardROIHeads(ROIHeads):
             #     boxes = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
             # print(len(features))
             # print(features[0].shape)
-            features = self.mask_pooler(features, instances, self.training)
+            if scales is None:
+                features = self.mask_pooler(features, instances, self.training)
+            else:
+                features = self.mask_pooler(features, instances, self.training, scales)
         else:
             features = {f: features[f] for f in self.mask_in_features}
         return self.mask_head(features, instances)

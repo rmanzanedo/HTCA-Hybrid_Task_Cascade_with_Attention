@@ -37,7 +37,9 @@ import yaml
 # from efficientdet import hparams_config
 # from efficientdet import utils
 # from efficientdet.visualize import vis_utils
-
+import sys
+# sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet1')
 import anchors
 import dataloader
 import det_model_fn

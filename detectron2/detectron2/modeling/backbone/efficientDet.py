@@ -18,8 +18,15 @@ from .backbone import Backbone
 from .build import BACKBONE_REGISTRY
 
 import sys
-sys.path.append('/disk2/transformer')
-sys.path.append('/disk2/transformer/efficientdet')
+import os
+# sys.path.append('/disk2/transformer')
+# sys.path.append('/disk2/transformer/efficientdet')
+
+current_dir = os.path.dirname(os.getcwd())
+sys.path.append(current_dir)
+sys.path.append(os.path.join(current_dir,'efficientdet'))
+# sys.path.append(os.path.join(current_dir,'detectron2'))
+
 # import efficientdet.model_inspect1 as effi
 from efficientdet import inference
 # import tensorflow.compat.v1 as tf

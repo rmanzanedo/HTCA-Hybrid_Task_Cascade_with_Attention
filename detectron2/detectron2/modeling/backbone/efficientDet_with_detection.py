@@ -89,15 +89,21 @@ class EfficientDet_with_detections(Backbone):
 
         # show_image_from_tensor(feats['p2'][0][0].unsqueeze(0), 'output_from_effi')
         dim = x.shape[3] / x.shape[2]
-        # print(len(feats['p2']))
+        # print(dim)
         batch_size = len(feats['p2'])
         feats_output = {}
+        scale_output = []
         if dim <= 1:
             for i in self.stage_names:
                 if i in self._out_features:
                     out_dim = feats[i][0].shape
+                    scale_output.append(out_dim[-1]/x.shape[2])
+                    # print('dimension original: {}, dimension output: {}, scale: {}'.format(x.shape[2:], out_dim[-1],
+                    #                                                                        out_dim[-1] / x.shape[2]))
                     for n in range(batch_size):
                         feats_output = add_to_dict(feats_output, i, feats[i][n][:, :, 0:math.ceil(out_dim[-1] * dim)])
+                        # feats_output = add_to_dict(feats_output, i, feats[i][n])
+
                         if n == batch_size - 1:
                             feats_output[i] = torch.stack(feats_output[i]).cuda()
                             feats.pop(i)
@@ -106,13 +112,16 @@ class EfficientDet_with_detections(Backbone):
                 else:
                     feats.pop(i)
 
-
+            # scale_output.append()
         else:
             for i in self._out_features:
                 if i in self._out_features:
                     out_dim = feats[i][0].shape
+                    scale_output.append(out_dim[-1] / x.shape[3])
+                    # print('dimension original: {}, dimension output: {}, scale: {}'.format(x.shape[2:], out_dim[-1] , out_dim[-1] / x.shape[3]))
                     for n in range(batch_size):
-                        feats_output = add_to_dict(feats_output, i, feats[i][n][:, :, 0:math.ceil(out_dim[-1] * dim)])
+                        feats_output = add_to_dict(feats_output, i, feats[i][n][:, 0:math.ceil(out_dim[-1] / dim), :])
+                        # feats_output = add_to_dict(feats_output, i, feats[i][n])
                         if n == batch_size - 1:
                             feats_output[i] = torch.stack(feats_output[i]).cuda()
                             feats.pop(i)
@@ -120,6 +129,8 @@ class EfficientDet_with_detections(Backbone):
                 else:
                     feats.pop(i)
 
+        # show_image_from_tensor(feats_output['p2'][0][0].unsqueeze(0).cpu(), 'output_from_effi_1')
+        # quit()
         results: List[Instances] = []
         # print(detections[:, 0])
         if training:
@@ -172,7 +183,7 @@ class EfficientDet_with_detections(Backbone):
         # print(feats_output['p3'].shape)
         # quit()
 
-        return feats_output, results
+        return feats_output, results, scale_output
 
     def output_shape(self):
         return {

@@ -28,6 +28,7 @@ from .coco import load_sem_seg, register_coco_instances
 from .coco_panoptic import register_coco_panoptic, register_coco_panoptic_separated
 from .lvis import get_lvis_instances_meta, register_lvis_instances
 from .pascal_voc import register_pascal_voc
+from .pennfudanped import register_pennfudan
 
 # ==== Predefined datasets and splits for COCO ==========
 
@@ -245,15 +246,23 @@ def register_all_ade20k(root):
             ignore_label=255,
         )
 
+def register_all_penn(root):
+    dirname = "PennFudanPed"
+    name = "penn"
+    split = None
+    register_pennfudan(name, os.path.join(root, dirname), split)
+    # MetadataCatalog.get(name).evaluator_type = "pascal_voc"
 
 # True for open source;
 # Internally at fb, we register them elsewhere
 if __name__.endswith(".builtin"):
     # Assume pre-defined datasets live in `./datasets`.
-    _root = os.path.expanduser(os.getenv("DETECTRON2_DATASETS", "/disk2/datasets"))
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), 'datasets')
+    _root = os.path.expanduser(os.getenv("DETECTRON2_DATASETS", data_dir))
     register_all_coco(_root)
     register_all_lvis(_root)
     register_all_cityscapes(_root)
     register_all_cityscapes_panoptic(_root)
     register_all_pascal_voc(_root)
     register_all_ade20k(_root)
+    register_all_penn(_root)

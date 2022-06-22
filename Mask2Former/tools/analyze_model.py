@@ -2,9 +2,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # Modified by Bowen Cheng from https://github.com/facebookresearch/detectron2/blob/main/tools/analyze_model.py
 import sys
-sys.path.append('/disk2/transformer')
-sys.path.append('/disk2/transformer/efficientdet')
-sys.path.append('/disk2/transformer/detectron2')
+import os
+# sys.path.append('/disk2/transformer')
+# sys.path.append('/disk2/transformer/efficientdet')
+# sys.path.append('/disk2/transformer/detectron2')
+
+current_dir = os.path.dirname(os.getcwd())
+sys.path.append(current_dir)
+sys.path.append(os.path.join(current_dir,'efficientdet'))
+sys.path.append(os.path.join(current_dir,'detectron2'))
+
 
 import logging
 import numpy as np

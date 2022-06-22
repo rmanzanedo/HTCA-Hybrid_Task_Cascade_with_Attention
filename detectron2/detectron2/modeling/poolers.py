@@ -248,7 +248,7 @@ class ROIPooler(nn.Module):
         assert canonical_box_size > 0
         self.canonical_box_size = canonical_box_size
 
-    def forward(self, x: List[torch.Tensor], instances: List[Instances], training = False):
+    def forward(self, x: List[torch.Tensor], instances: List[Instances], training = False, scales = None):
         """
         Args:
             x (list[Tensor]): A list of feature maps of NCHW shape, with scales matching those
@@ -292,10 +292,11 @@ class ROIPooler(nn.Module):
         pooler_fmt_boxes = convert_boxes_to_pooler_format(box_lists)
 
         if num_level_assignments == 1:
-            return self.level_poolers[0](x[0], pooler_fmt_boxes)
-        ############################## Mi codigo para centermask#######################################
+            return self.level_poolers[0](x[0], pooler_fmt_boxes, scales[0])
+
+        ############################## Mi codigo para centermask #######################################
         level_assignments = assign_boxes_to_levels_by_ratio(instances, self.min_level, self.max_level, training)
-        ############################# Original ###########################################################
+        # ############################# Original ###########################################################
 
         # level_assignments = assign_boxes_to_levels(
         #     box_lists, self.min_level, self.max_level, self.canonical_box_size, self.canonical_level
@@ -311,10 +312,27 @@ class ROIPooler(nn.Module):
             (num_boxes, num_channels, output_size, output_size), dtype=dtype, device=device
         )
 
-        for level, pooler in enumerate(self.level_poolers):
-            inds = nonzero_tuple(level_assignments == level)[0]
-            pooler_fmt_boxes_level = pooler_fmt_boxes[inds]
-            # Use index_put_ instead of advance indexing, to avoid pytorch/issues/49852
-            output.index_put_((inds,), pooler(x[level], pooler_fmt_boxes_level))
+        if scales is None:
+            for level, pooler in enumerate(self.level_poolers):
+                inds = nonzero_tuple(level_assignments == level)[0]
+                pooler_fmt_boxes_level = pooler_fmt_boxes[inds]
+                # print(inds)
+                # print(pooler_fmt_boxes_level)
+                # Use index_put_ instead of advance indexing, to avoid pytorch/issues/49852
+                output.index_put_((inds,), pooler(x[level], pooler_fmt_boxes_level))
 
-        return output
+            # print(output)
+            return output
+        else:
+
+            for level, (pooler, scale) in enumerate(zip(self.level_poolers, scales)):
+                inds = nonzero_tuple(level_assignments == level)[0]
+                pooler_fmt_boxes_level = pooler_fmt_boxes[inds]
+                # print(inds)
+                # print(pooler_fmt_boxes_level)
+                # Use index_put_ instead of advance indexing, to avoid pytorch/issues/49852
+                output.index_put_((inds,), pooler(x[level], pooler_fmt_boxes_level, scale))
+
+            # print(output)
+            # quit()
+            return output

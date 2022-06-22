@@ -10,6 +10,7 @@ from detectron2.layers import Conv2d, ConvTranspose2d, ShapeSpec, cat, get_norm
 from detectron2.structures import Instances
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.registry import Registry
+from detectron2.utils.visualizer import show_image_from_tensor
 
 __all__ = [
     "BaseMaskRCNNHead",
@@ -188,6 +189,10 @@ class BaseMaskRCNNHead(nn.Module):
         Returns:
             A dict of losses in training. The predicted "instances" in inference.
         """
+        # print(instances)
+        # for i in range(x.shape[0]):
+        #     show_image_from_tensor(x[i][0].unsqueeze(0).cpu(), 'RoI')
+        # quit()
         x = self.layers(x)
         if self.training:
             return {"loss_mask": mask_rcnn_loss(x, instances, self.vis_period) * self.loss_weight}

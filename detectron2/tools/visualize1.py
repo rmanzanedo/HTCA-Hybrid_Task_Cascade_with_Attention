@@ -1,4 +1,7 @@
 # import torch, detectron2
+import sys
+# sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet1')
 from detectron2.utils.logger import setup_logger
 setup_logger()
 
@@ -14,10 +17,6 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
-import sys
-sys.path.append('/disk2/transformer')
-sys.path.append('/disk2/transformer/efficientdet1')
-
 import efficientdet1.model_inspect1 as effi
 # from efficientdet import inference
 import tensorflow.compat.v1 as tf
@@ -28,15 +27,19 @@ config = ConfigProto()
 config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
-foto = '/disk2/datasets/vis/000001.jpg'
+# foto = '/disk2/datasets/vis/000001.jpg'
+foto = '/disk2/datasets/PennFudanPed/PNGImages/FudanPed00001.png'
 im = cv2.imread(foto)
 cfg = get_cfg()
 # cfg.merge_from_file("configs/COCO-Detection/solo-effi.yaml")
 # cfg.merge_from_file("configs/COCO-InstanceSegmentation/effi_mask_rcnn.yaml")
 # cfg.MODEL.WEIGHTS = 'output_effimask/test1/model_0004999.pth'
 
-cfg.merge_from_file("configs/COCO-InstanceSegmentation/effi-mask_sam.yaml")
-cfg.MODEL.WEIGHTS = 'output_effisam/test1/model_0004999.pth'
+# cfg.merge_from_file("configs/COCO-InstanceSegmentation/effi-mask_sam.yaml")
+# cfg.MODEL.WEIGHTS = 'output_effisam/test1/model_0004999.pth'
+
+cfg.merge_from_file("configs/PennFudanPed-InstanceSegmentation/effi_mask_rcnn.yaml")
+cfg.MODEL.WEIGHTS = 'output_effimask_penn/model_final.pth'
 
 args = default_argument_parser().parse_args()
 # print("Command Line Args:", args)
@@ -62,5 +65,5 @@ out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 # cv2.imshow('Image', )
 # filename = '/disk2/datasets/vis/prediction_effi_detectron.jpg'
 # filename = '/disk2/datasets/vis/prediction_effimask.jpg'
-filename = '/disk2/datasets/vis/prediction_effisam.jpg'
+filename = '/disk2/datasets/vis/prediction_effimask.jpg'
 cv2.imwrite(filename, out.get_image()[:, :, ::-1])

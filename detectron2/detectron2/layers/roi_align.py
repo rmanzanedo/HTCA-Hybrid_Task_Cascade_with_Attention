@@ -46,7 +46,7 @@ class ROIAlign(nn.Module):
         # https://github.com/pytorch/vision/pull/2438
         assert version >= (0, 7), "Require torchvision >= 0.7"
 
-    def forward(self, input, rois):
+    def forward(self, input, rois, scale=None):
         """
         Args:
             input: NCHW images
@@ -55,6 +55,11 @@ class ROIAlign(nn.Module):
         assert rois.dim() == 2 and rois.size(1) == 5
         if input.is_quantized:
             input = input.dequantize()
+        if scale is not None:
+            self.spatial_scale = scale
+            # print('scale del RoI: {}'.format(self.spatial_scale))
+            # print('rois info: {}'.format(rois))
+
         return roi_align(
             input,
             rois.to(dtype=input.dtype),

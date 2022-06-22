@@ -2,9 +2,17 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import sys
-sys.path.append('/disk2/transformer')
-sys.path.append('/disk2/transformer/efficientdet1')
-sys.path.append('/disk2/transformer/detectron2')
+import os
+# sys.path.append('/disk2/transformer')
+# sys.path.append('/disk2/transformer/efficientdet1')
+# sys.path.append('/disk2/transformer/detectron2')
+
+current_dir = os.path.dirname(os.getcwd())
+sys.path.append(current_dir)
+sys.path.append(os.path.join(current_dir,'efficientdet1'))
+sys.path.append(os.path.join(current_dir,'detectron2'))
+
+
 import logging
 import numpy as np
 from collections import Counter

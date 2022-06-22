@@ -158,7 +158,7 @@ class GeneralizedRCNN(nn.Module):
         if not hasattr(self.backbone, 'inspector'):
             features = self.backbone(images.tensor)
         else:
-            features, proposals = self.backbone(images.tensor, self.training)
+            features, proposals, scales = self.backbone(images.tensor, self.training)
 
         if self.proposal_generator is not None:
             proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
@@ -169,7 +169,10 @@ class GeneralizedRCNN(nn.Module):
             proposals = [x["proposals"].to(self.device) for x in batched_inputs]
             proposal_losses = {}
 
-        _, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
+        if not hasattr(self.backbone, 'inspector'):
+            _, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
+        else:
+            _, detector_losses = self.roi_heads(images, features, proposals, gt_instances, scales)
         if self.vis_period > 0:
             storage = get_event_storage()
             if storage.iter % self.vis_period == 0:
@@ -210,7 +213,7 @@ class GeneralizedRCNN(nn.Module):
         if not hasattr(self.backbone, 'inspector'):
             features = self.backbone(images.tensor)
         else:
-            features, proposals = self.backbone(images.tensor, self.training)
+            features, proposals, scales = self.backbone(images.tensor, self.training)
         # features = self.backbone(images.tensor)
 
         if detected_instances is None:
@@ -225,7 +228,7 @@ class GeneralizedRCNN(nn.Module):
                 proposals = [x["proposals"].to(self.device) for x in batched_inputs]
                 # pass
 
-            results, _ = self.roi_heads(images, features, proposals, None)
+            results, _ = self.roi_heads(images, features, proposals, None, scales)
 
         else:
             detected_instances = [x.to(self.device) for x in detected_instances]
