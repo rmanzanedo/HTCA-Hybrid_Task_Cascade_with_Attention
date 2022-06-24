@@ -19,8 +19,8 @@ from mmdet.models import build_detector
 from mmdet.utils import collect_env, get_root_logger, setup_multi_processes
 
 import sys
-sys.path.append('/disk2/transformer1')
-sys.path.append('/disk2/transformer1/efficientdet')
+sys.path.append('/disk2/htc')
+sys.path.append('/disk2/htc/efficientdet')
 import efficientdet.model_inspect1 as effi
 # from efficientdet import inference
 import tensorflow.compat.v1 as tf

@@ -126,30 +126,45 @@ class ModelInspector(object):
 
   def saved_model_inference_for_transformer(self, imgs, driver, layers, type='train', **kwargs):
 
-      preprocessing = transforms.ToPILImage()
+      # # preprocessing = transforms.ToPILImage()
+      # postprocessing = transforms.ToTensor()
+      # get_features = True
+      # output = {}
+      # # feats = []
+      # raw_images = []
+      # for img in imgs:
+      #     # x = preprocessing(img.squeeze().cpu())
+      #     # raw_images.append(np.array(x, dtype='uint8'))
+      #     x = [np.array(x, dtype='uint8')]
+      #     detections_bs = driver.serve_images(x, get_features)[2:]
+      #     detections_bs.reverse()
+      #     for k, i in zip(layers, detections_bs):
+      #         v = postprocessing(i[0])
+      #         output = add_to_dict(output, k, v)
+      #         # print(k, len(output[k]), v.shape)
+      #
+      #
+      #
+      #     # print(i, output[i].shape)
+      # # print(len(feats))
+
       postprocessing = transforms.ToTensor()
       get_features = True
       output = {}
-      # feats = []
-      raw_images = []
-      for img in imgs:
-          x = preprocessing(img.squeeze().cpu())
-          # raw_images.append(np.array(x, dtype='uint8'))
-          x = [np.array(x, dtype='uint8')]
-          detections_bs = driver.serve_images(x, get_features)[2:]
-          detections_bs.reverse()
-          for k, i in zip(layers, detections_bs):
+      # output_detections = []
+
+      for n, img in enumerate(imgs):
+
+          x = img.squeeze().cpu().numpy().transpose(1, 2, 0)
+          x = [x.astype(np.uint8)]
+          detections_feat = driver.serve_images(x, get_features)  # [2:]
+          detections_feat.reverse()
+          for k, i in zip(layers, detections_feat):
               v = postprocessing(i[0])
               output = add_to_dict(output, k, v)
-              # print(k, len(output[k]), v.shape)
-
-
-
-          # print(i, output[i].shape)
-      # print(len(feats))
-
 
       return output
+
   def saved_model_inference(self, dataset, driver, imgs, type='train', **kwargs):
     """Perform inference for the given saved model."""
     # driver = inference.ServingDriver(

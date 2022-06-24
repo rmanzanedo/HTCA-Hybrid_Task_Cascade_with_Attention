@@ -169,6 +169,9 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             return self.onnx_export(img[0], img_metas[0])
 
         if return_loss:
+            # for i in range(len(img_metas)):
+            # print('fname: {}, ori_shape: {}, img_shape: {}, pad_shape: {}, final shape: {} '.format(img_metas[i]['ori_filename'],img_metas[i]['ori_shape'], img_metas[i]['img_shape'], img_metas[i]['pad_shape'], img[i].shape))
+            # print(img_metas[0]['filename'])
             return self.forward_train(img, img_metas, **kwargs)
         else:
             return self.forward_test(img, img_metas, **kwargs)
@@ -197,6 +200,13 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
 
         loss = sum(_value for _key, _value in log_vars.items()
                    if 'loss' in _key)
+        # print(log_vars.items())
+
+        # for _key, _value in log_vars.items():
+        #     if 'loss' in _key:
+        #         print('key: {}, values: {}'.format(_key, _value))
+
+
 
         # If the loss_vars has different length, GPUs will wait infinitely
         if dist.is_available() and dist.is_initialized():

@@ -17,6 +17,7 @@ from .se_layer import DyReLU, SELayer
 from .transformer import (DetrTransformerDecoder, DetrTransformerDecoderLayer,
                           DynamicConv, PatchEmbed, Transformer, nchw_to_nlc,
                           nlc_to_nchw)
+from .visualize import show_image_from_tensor
 
 __all__ = [
     'ResLayer', 'gaussian_radius', 'gen_gaussian_target',

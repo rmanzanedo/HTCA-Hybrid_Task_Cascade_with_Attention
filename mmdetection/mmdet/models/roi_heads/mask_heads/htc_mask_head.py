@@ -19,13 +19,13 @@ class HTCMaskHead(FCNMaskHead):
                 conv_cfg=self.conv_cfg,
                 norm_cfg=self.norm_cfg)
         ############################################Mi codigo#####################################
-        self.spatialAtt = SpatialAttention()
+        # self.spatialAtt = SpatialAttention()
 
     def forward(self, x, res_feat=None, return_logits=True, return_feat=True):
         if res_feat is not None:
             assert self.with_conv_res
             ############################################Mi codigo#####################################
-            res_feat = self.spatialAtt(res_feat)
+            # res_feat = self.spatialAtt(res_feat)
             ############################################Original######################################
             res_feat = self.conv_res(res_feat)
             x = x + res_feat

@@ -6,8 +6,8 @@ _base_ = [
 
 runner = dict(type='EpochBasedRunner', max_epochs=20)
 log_config = dict(
-    interval=10,
+    interval=50,
     hooks=[
-        # dict(type='TextLoggerHook'),
-        dict(type='TensorboardLoggerHook')
+        dict(type='TextLoggerHook'),
+        # dict(type='TensorboardLoggerHook')
     ])

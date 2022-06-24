@@ -65,10 +65,16 @@ class TwoStageDetector(BaseDetector):
 
     def extract_feat(self, img):
         """Directly extract features from the backbone+neck."""
-        x = self.backbone(img)
+        if not hasattr(self.backbone, 'inspector'):
+            x = self.backbone(img)
+            scales = None
+        else:
+            x, scales = self.backbone(img)
+        # print(len(x), x[0].shape)
+        # quit()
         if self.with_neck:
             x = self.neck(x)
-        return x
+        return x, scales
 
     def forward_dummy(self, img):
         """Used for computing network flops.
@@ -125,7 +131,7 @@ class TwoStageDetector(BaseDetector):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
-        x = self.extract_feat(img)
+        x, scales = self.extract_feat(img)
 
         losses = dict()
 
@@ -149,7 +155,7 @@ class TwoStageDetector(BaseDetector):
 
         roi_losses = self.roi_head.forward_train(x, img_metas, proposal_list,
                                                  gt_bboxes, gt_labels,
-                                                 gt_bboxes_ignore, gt_masks,
+                                                 gt_bboxes_ignore, gt_masks, scales=scales,
                                                  **kwargs)
         losses.update(roi_losses)
 

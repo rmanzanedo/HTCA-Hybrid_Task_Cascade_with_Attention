@@ -7,6 +7,20 @@ from mmcv import Config, DictAction
 
 from mmdet.models import build_detector
 
+import sys
+sys.path.append('/disk2/htc')
+sys.path.append('/disk2/htc/efficientdet')
+import efficientdet.model_inspect1 as effi
+# from efficientdet import inference
+import tensorflow.compat.v1 as tf
+# import parser1
+
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
+
 try:
     from mmcv.cnn import get_model_complexity_info
 except ImportError:
@@ -38,6 +52,30 @@ def parse_args():
         default=32,
         help='Pad the input image, the minimum size that is divisible '
         'by size_divisor, -1 means do not pad the image.')
+
+    parser.add_argument("--model_name", default="efficientdet-d7", help="Model.", )
+    parser.add_argument("--logdir", default="log", help="log directory.")
+    parser.add_argument("--runmode", default="saved_model_infer", help="Run mode: {freeze, bm, dry}")
+    parser.add_argument("--trace_filename", default=None, help="Trace file name.")
+
+    parser.add_argument("--threads", default=0, help="Number of threads.")
+    parser.add_argument("--bm_runs", default=10, help="Number of benchmark runs.")
+    parser.add_argument("--tensorrt", default=None, help="TensorRT mode: {None, FP32, FP16, INT8}")
+    parser.add_argument("--delete_logdir", default=True, help="Whether to delete logdir.")
+    parser.add_argument("--freeze", default=False, help="Freeze graph.")
+    parser.add_argument("--xla", default=False, help="Run with xla optimization.")
+    parser.add_argument("--batch_size", default=1, help="Batch size for inference.")
+
+    parser.add_argument("--ckpt_path", default=None, help="checkpoint dir used for eval.")
+    parser.add_argument("--export_ckpt", default=None, help="Path for exporting new models.")
+
+    parser.add_argument("--hparams", default="",
+                        help="Comma separated k=v pairs of hyperparameters or a module containing attributes to use as hyperparameters.")
+    # For saved model.
+    parser.add_argument("--saved_model_dir", default="/disk2/transformer/efficientdet/saved_model_only_feats/",
+                        help="Folder path for saved model.")
+    parser.add_argument("--tflite_path", default=None, help="Path for exporting tflite file.")
+
     args = parser.parse_args()
     return args
 
@@ -64,10 +102,28 @@ def main():
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
 
+    if 'effi' in args.config:
+        tf.disable_eager_execution()
+
+        inspector = effi.ModelInspector(
+            model_name=args.model_name,
+            logdir=args.logdir,
+            tensorrt=args.tensorrt,
+            use_xla=args.xla,
+            ckpt_path=args.ckpt_path,
+            export_ckpt=args.export_ckpt,
+            saved_model_dir=args.saved_model_dir,
+            tflite_path=args.tflite_path,
+            batch_size=args.batch_size,
+            hparams=args.hparams)
+    else:
+        inspector = None
+
     model = build_detector(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
-        test_cfg=cfg.get('test_cfg'))
+        test_cfg=cfg.get('test_cfg'),
+        inspector= inspector)
     if torch.cuda.is_available():
         model.cuda()
     model.eval()
