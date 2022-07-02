@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import warnings
+from matplotlib import scale
 
 import mmcv
 import numpy as np
@@ -213,7 +214,7 @@ class AnchorGenerator:
         else:
             return yy, xx
 
-    def grid_priors(self, featmap_sizes, dtype=torch.float32, device='cuda'):
+    def grid_priors(self, featmap_sizes, dtype=torch.float32, device='cuda', scales=None):
         """Generate grid anchors in multiple feature levels.
 
         Args:
@@ -231,10 +232,14 @@ class AnchorGenerator:
                 num_base_anchors is the number of anchors for that level.
         """
         assert self.num_levels == len(featmap_sizes)
+        
+        if scales is not None:
+           self.strides=[(1/scale,1/scale) for scale in scales]
+
         multi_level_anchors = []
         for i in range(self.num_levels):
             anchors = self.single_level_grid_priors(
-                featmap_sizes[i], level_idx=i, dtype=dtype, device=device)
+                featmap_sizes[i], level_idx=i, dtype=dtype, device=device, scales=scales)
             multi_level_anchors.append(anchors)
         return multi_level_anchors
 
@@ -242,7 +247,7 @@ class AnchorGenerator:
                                  featmap_size,
                                  level_idx,
                                  dtype=torch.float32,
-                                 device='cuda'):
+                                 device='cuda', scales=None):
         """Generate grid anchors of a single level.
 
         Note:
@@ -259,7 +264,7 @@ class AnchorGenerator:
         Returns:
             torch.Tensor: Anchors in the overall feature maps.
         """
-
+        
         base_anchors = self.base_anchors[level_idx].to(device).to(dtype)
         feat_h, feat_w = featmap_size
         stride_w, stride_h = self.strides[level_idx]

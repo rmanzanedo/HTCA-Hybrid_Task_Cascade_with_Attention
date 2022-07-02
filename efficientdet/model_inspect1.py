@@ -151,19 +151,20 @@ class ModelInspector(object):
       postprocessing = transforms.ToTensor()
       get_features = True
       output = {}
-      # output_detections = []
+      output_detections = []
 
       for n, img in enumerate(imgs):
 
           x = img.squeeze().cpu().numpy().transpose(1, 2, 0)
           x = [x.astype(np.uint8)]
-          detections_feat = driver.serve_images(x, get_features)  # [2:]
+          detections_feat, detections_bs = driver.serve_images(x, get_features)
+          output_detections.append(detections_bs[0][:, 1:])
           detections_feat.reverse()
           for k, i in zip(layers, detections_feat):
               v = postprocessing(i[0])
               output = add_to_dict(output, k, v)
 
-      return output
+      return output, output_detections
 
   def saved_model_inference(self, dataset, driver, imgs, type='train', **kwargs):
     """Perform inference for the given saved model."""

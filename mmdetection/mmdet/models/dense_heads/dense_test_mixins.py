@@ -113,7 +113,7 @@ class BBoxTestMixin(object):
             (_det_bboxes, det_labels),
         ]
 
-    def simple_test_rpn(self, x, img_metas):
+    def simple_test_rpn(self, x, img_metas, scales=None):
         """Test without augmentation, only for ``RPNHead`` and its variants,
         e.g., ``GARPNHead``, etc.
 
@@ -126,8 +126,13 @@ class BBoxTestMixin(object):
             list[Tensor]: Proposals of each image, each item has shape (n, 5),
                 where 5 represent (tl_x, tl_y, br_x, br_y, score).
         """
+
         rpn_outs = self(x)
-        proposal_list = self.get_bboxes(*rpn_outs, img_metas=img_metas)
+        # print('len: {}'.format(len(rpn_outs[1])))
+        # for i  in range(len(x)):
+        #     print('input: {}'.format(x[i].shape))
+        # quit()
+        proposal_list = self.get_bboxes(*rpn_outs, img_metas=img_metas, scales=scales)
         return proposal_list
 
     def aug_test_rpn(self, feats, img_metas):

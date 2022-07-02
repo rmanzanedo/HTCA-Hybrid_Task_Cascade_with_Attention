@@ -26,28 +26,13 @@ runner = dict(type='EpochBasedRunner', max_epochs=30)
 
 model = dict(
     backbone=dict(
-        # out_features=['p2'],),
         out_features=['p2', 'p3', 'p4', 'p5'],),
     # rpn_head=None,
-    rpn_head=dict(
-        anchor_generator=dict(
-            type='AnchorGenerator',
-            scales=[8],
-            ratios=[0.5, 1.0, 2.0],
-            # strides=[4]),),
-            strides=[4, 8, 16, 32]),),
     roi_head=dict(
-    mask_roi_extractor=dict(
-            type='SingleRoIExtractor',
-            roi_layer=dict(type='RoIAlign', output_size=14, sampling_ratio=0),
-            out_channels=256,
-            # featmap_strides=[4]),),
-            featmap_strides=[4, 8, 16, 32]),
         semantic_roi_extractor=dict(
             type='SingleRoIExtractor',
             roi_layer=dict(type='RoIAlign', output_size=14, sampling_ratio=0),
             out_channels=256,
-            # featmap_strides=[4]),
             featmap_strides=[8]),
         semantic_head=dict(
             type='FusedSemanticHead',
@@ -60,20 +45,19 @@ model = dict(
             loss_seg=dict(
                 type='CrossEntropyLoss', ignore_index=255, loss_weight=0.2))),
     neck = dict(
-        type='ChannelMapper',
-    #     # in_channels=[40, 384, 384, 384],
+        type='FPN',
+        # in_channels=[40, 384, 384, 384],
         in_channels=[32, 160, 160, 160],
         out_channels=256,
-        num_outs=4))
-    # neck = None)
+        num_outs=5))
 data_root = '/disk2/datasets/coco/'
 img_norm_cfg = dict(
-    mean=[0,0,0], std=[1,1,1], to_rgb=True)
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='LoadAnnotations', with_bbox=True, with_mask=True, with_seg=True),
-    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
+    dict(type='Resize', img_scale=(1333, 600), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
@@ -107,7 +91,7 @@ data = dict(
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
 log_config = dict(
-    interval=5,
+    interval=500,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')

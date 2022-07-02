@@ -950,8 +950,8 @@ class SegRescale:
         #######################################Original###################################
         # for key in results.get('seg_fields', []):
         #     dim = results[key].shape[0]/ results[key].shape[1]
-        #     print('fname: {} ,shape del calculo de dim: {}, dim: {}, img: {}, img_shape: {}, ori_shape: {} '.format(
-        #         results['ori_filename'], results[key].shape, dim, results['img'].shape, results['img_shape'], results['ori_shape'] ))
+        #     # print('fname: {} ,shape del calculo de dim: {}, dim: {}, img: {}, img_shape: {}, ori_shape: {} '.format(
+        #     #     results['ori_filename'], results[key].shape, dim, results['img'].shape, results['img_shape'], results['ori_shape'] ))
         #     if self.scale_factor != 1:
         #         results[key] = mmcv.imrescale(
         #             results[key],

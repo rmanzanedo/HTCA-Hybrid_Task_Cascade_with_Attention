@@ -171,19 +171,19 @@ def build_model(model_name: Text, inputs: tf.Tensor, **kwargs):
 
   ###################################################Mi codigo#############################
 
-  fpn_feats = utils.build_model_with_precision(
-      kwargs.get('precision', None), model_arch, inputs, model_name, **kwargs)
-
-  return fpn_feats
-  #################################################################Original########################
-  # cls_outputs, box_outputs, fpn_feats = utils.build_model_with_precision(
+  # fpn_feats = utils.build_model_with_precision(
   #     kwargs.get('precision', None), model_arch, inputs, model_name, **kwargs)
-  # if kwargs.get('precision', None):
-  #   # Post-processing has multiple places with hard-coded float32.
-  #   # TODO(tanmingxing): Remove them once post-process can adpat to dtypes.
-  #   cls_outputs = {k: tf.cast(v, tf.float32) for k, v in cls_outputs.items()}
-  #   box_outputs = {k: tf.cast(v, tf.float32) for k, v in box_outputs.items()}
-  # return cls_outputs, box_outputs, fpn_feats
+  #
+  # return fpn_feats
+  #################################################################Original########################
+  cls_outputs, box_outputs, fpn_feats = utils.build_model_with_precision(
+      kwargs.get('precision', None), model_arch, inputs, model_name, **kwargs)
+  if kwargs.get('precision', None):
+    # Post-processing has multiple places with hard-coded float32.
+    # TODO(tanmingxing): Remove them once post-process can adpat to dtypes.
+    cls_outputs = {k: tf.cast(v, tf.float32) for k, v in cls_outputs.items()}
+    box_outputs = {k: tf.cast(v, tf.float32) for k, v in box_outputs.items()}
+  return cls_outputs, box_outputs, fpn_feats
 
 
 def restore_ckpt(sess, ckpt_path, ema_decay=0.9998, export_ckpt=None):
@@ -574,35 +574,13 @@ class ServingDriver(object):
       if params['data_format'] == 'channels_first':
         images = tf.transpose(images, [0, 3, 1, 2])
       ###################################################################### Mi codigo #####################################
-      fpn_feats = build_model(self.model_name, images, **params)
-      params['min_level'] = 3
-      params.update(
-          dict(batch_size=self.batch_size, disable_pyfun=self.disable_pyfun))
-      # detections = det_post_process(params, class_outputs, box_outputs, scales,
-      #                               self.min_score_thresh,
-      #                               self.max_boxes_to_draw)
-
-      restore_ckpt(
-          self.sess,
-          self.ckpt_path,
-          ema_decay=self.params['moving_average_decay'],
-          export_ckpt=None)
-
-    self.signitures = {
-        'image_files': image_files,
-        'image_arrays': raw_images,
-        # 'prediction': detections,
-        'feats': fpn_feats,
-        # 'boxes': box_outputs,
-        # 'class': class_outputs,
-    }
-    ###################################################################### Original #####################################
-    # class_outputs, box_outputs, fpn_feats = build_model(self.model_name, images, **params)
+    #   fpn_feats = build_model(self.model_name, images, **params)
+    #   params['min_level'] = 3
     #   params.update(
     #       dict(batch_size=self.batch_size, disable_pyfun=self.disable_pyfun))
-    #   detections = det_post_process(params, class_outputs, box_outputs, scales,
-    #                                 self.min_score_thresh,
-    #                                 self.max_boxes_to_draw)
+    #   # detections = det_post_process(params, class_outputs, box_outputs, scales,
+    #   #                               self.min_score_thresh,
+    #   #                               self.max_boxes_to_draw)
     #
     #   restore_ckpt(
     #       self.sess,
@@ -613,11 +591,89 @@ class ServingDriver(object):
     # self.signitures = {
     #     'image_files': image_files,
     #     'image_arrays': raw_images,
-    #     'prediction': detections,
+    #     # 'prediction': detections,
     #     'feats': fpn_feats,
-    #     'boxes': box_outputs,
-    #     'class' : class_outputs,
+    #     # 'boxes': box_outputs,
+    #     # 'class': class_outputs,
     # }
+    ###################################################################### Original #####################################
+    class_outputs, box_outputs, fpn_feats = build_model(self.model_name, images, **params)
+    params.update(
+      dict(batch_size=self.batch_size, disable_pyfun=self.disable_pyfun))
+    detections = det_post_process(params, class_outputs, box_outputs, scales,
+                                    self.min_score_thresh,
+                                    self.max_boxes_to_draw)
+
+    restore_ckpt(
+          self.sess,
+          self.ckpt_path,
+          ema_decay=self.params['moving_average_decay'],
+          export_ckpt=None)
+
+    self.signitures = {
+        'image_files': image_files,
+        'image_arrays': raw_images,
+        'prediction': detections,
+        'feats': fpn_feats,
+        'boxes': box_outputs,
+        'class' : class_outputs,
+    }
+    ########################################################Mi codigo ######################################
+
+    feat_dict = {'d0': ['fpn_cells/cell_2/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_2/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_2/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_2/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_2/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b0/blocks_2/Add:0'],
+                 'd1': ['fpn_cells/cell_3/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_3/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_3/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_3/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_3/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b1/blocks_4/Add:0'],
+                 'd2': ['fpn_cells/cell_4/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_4/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_4/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_4/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_4/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b2/blocks_4/Add:0'],
+                 'd3': ['fpn_cells/cell_5/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_5/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_5/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_5/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_5/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b3/blocks_4/Add:0'],
+                 'd4': ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b4/blocks_5/Add:0'],
+                 'd5': ['fpn_cells/cell_6/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_6/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b5/blocks_7/Add:0'],
+                 'd6': ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b6/blocks_8/Add:0'],
+                 'd7': ['fpn_cells/cell_7/fnode7/op_after_combine12/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode6/op_after_combine11/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode5/op_after_combine10/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
+                        'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
+                        'efficientnet-b6/blocks_8/Add:0']}
+
+    features = feat_dict[self.model_name[-2:]]
+    self.outputs = [features, self.signitures['prediction']]
+
+    ##################################################Original##################################################
+
     return self.signitures
 
   def visualize(self, image, prediction, **kwargs):

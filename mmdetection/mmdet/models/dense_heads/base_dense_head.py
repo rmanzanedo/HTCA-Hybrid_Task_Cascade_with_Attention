@@ -37,6 +37,7 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                    cfg=None,
                    rescale=False,
                    with_nms=True,
+                   scales=None,
                    **kwargs):
         """Transform network outputs of a batch into bbox results.
 
@@ -72,6 +73,7 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
         """
         assert len(cls_scores) == len(bbox_preds)
 
+
         if score_factors is None:
             # e.g. Retina, FreeAnchor, Foveabox, etc.
             with_score_factors = False
@@ -86,14 +88,19 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
         mlvl_priors = self.prior_generator.grid_priors(
             featmap_sizes,
             dtype=cls_scores[0].dtype,
-            device=cls_scores[0].device)
-
+            device=cls_scores[0].device, scales=scales)
+        # print(len(mlvl_priors))
+        # print(mlvl_priors[0].shape)
+        # quit()
         result_list = []
 
         for img_id in range(len(img_metas)):
             img_meta = img_metas[img_id]
             cls_score_list = select_single_mlvl(cls_scores, img_id)
             bbox_pred_list = select_single_mlvl(bbox_preds, img_id)
+            # print(bbox_pred_list[0].shape)
+            # print(bbox_preds[0].shape)
+            # quit()
             if with_score_factors:
                 score_factor_list = select_single_mlvl(score_factors, img_id)
             else:
@@ -307,6 +314,7 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                       gt_labels=None,
                       gt_bboxes_ignore=None,
                       proposal_cfg=None,
+                      scales=None,
                       **kwargs):
         """
         Args:
@@ -332,7 +340,7 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
             loss_inputs = outs + (gt_bboxes, img_metas)
         else:
             loss_inputs = outs + (gt_bboxes, gt_labels, img_metas)
-        losses = self.loss(*loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
+        losses = self.loss(*loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore, scales=scales)
         if proposal_cfg is None:
             return losses
         else:

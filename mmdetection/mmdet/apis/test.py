@@ -24,9 +24,12 @@ def single_gpu_test(model,
     dataset = data_loader.dataset
     PALETTE = getattr(dataset, 'PALETTE', None)
     prog_bar = mmcv.ProgressBar(len(dataset))
+    # print(model.module.show_result)
+    # quit()
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
+            # result = model(return_loss=False, rescale=False, **data)
 
         batch_size = len(result)
         if show or out_dir:
@@ -49,6 +52,8 @@ def single_gpu_test(model,
                     out_file = osp.join(out_dir, img_meta['ori_filename'])
                 else:
                     out_file = None
+                # print(result[i])
+                # quit()
 
                 model.module.show_result(
                     img_show,

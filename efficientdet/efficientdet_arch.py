@@ -761,11 +761,11 @@ def efficientdet(features, model_name=None, config=None, **kwargs):
   #     *utils.num_params_flops()))
   ###################################################################### Original #####################################
   # build class and box predictions.
-  # class_outputs, box_outputs = build_class_and_box_outputs(fpn_feats, config)
-  # logging.info('backbone+fpn+box params/flops = {:.6f}M, {:.9f}B'.format(
-  #     *utils.num_params_flops()))
+  class_outputs, box_outputs = build_class_and_box_outputs(fpn_feats, config)
+  logging.info('backbone+fpn+box params/flops = {:.6f}M, {:.9f}B'.format(
+      *utils.num_params_flops()))
 
-  # return class_outputs, box_outputs, fpn_feats
+  return class_outputs, box_outputs, fpn_feats
   ###################################################################### Original #####################################
 
-  return fpn_feats
+  # return fpn_feats

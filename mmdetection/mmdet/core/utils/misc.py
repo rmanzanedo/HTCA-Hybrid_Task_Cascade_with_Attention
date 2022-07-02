@@ -113,6 +113,7 @@ def select_single_mlvl(mlvl_tensors, batch_id, detach=True):
         mlvl_tensor_list = [
             mlvl_tensors[i][batch_id] for i in range(num_levels)
         ]
+    # print(len(mlvl_tensors))
     return mlvl_tensor_list
 
 

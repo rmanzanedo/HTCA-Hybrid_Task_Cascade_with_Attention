@@ -311,6 +311,7 @@ def _generate_detections_tf(cls_outputs,
     use_native_nms: a bool that indicates whether to use native nms.
 
   Returns:
+    mi codigo [image_id, xmin, ymax, xmax, ymin, score, class]
     detections: detection results in a tensor with each row representing
       [image_id, ymin, xmin, ymax, xmax, score, class]
   """
@@ -345,16 +346,29 @@ def _generate_detections_tf(cls_outputs,
     boxes = detections[:, :4]
 
   image_size = utils.parse_image_size(image_size)
+  ############################################Mi codigo ###############################################################
   detections = tf.stack([
-      tf.cast(tf.tile(image_id, tf.shape(top_detection_idx)), tf.float32),
-      tf.clip_by_value(boxes[:, 0], 0, image_size[0]) * image_scale,
-      tf.clip_by_value(boxes[:, 1], 0, image_size[1]) * image_scale,
-      tf.clip_by_value(boxes[:, 2], 0, image_size[0]) * image_scale,
-      tf.clip_by_value(boxes[:, 3], 0, image_size[1]) * image_scale,
-      scores,
-      tf.cast(tf.gather(classes, top_detection_idx) + 1, tf.float32)
+    tf.cast(tf.tile(image_id, tf.shape(top_detection_idx)), tf.float32),
+    tf.clip_by_value(boxes[:, 1], 0, image_size[1]) * image_scale,
+    tf.clip_by_value(boxes[:, 0], 0, image_size[0]) * image_scale,
+    tf.clip_by_value(boxes[:, 3], 0, image_size[1]) * image_scale,
+    tf.clip_by_value(boxes[:, 2], 0, image_size[0]) * image_scale,
+    scores,
+    tf.cast(tf.gather(classes, top_detection_idx) + 1, tf.float32)
   ], axis=1)
+  # clases =
+  ############################################Original##############################################################
+  # detections = tf.stack([
+  #   tf.cast(tf.tile(image_id, tf.shape(top_detection_idx)), tf.float32),
+  #   tf.clip_by_value(boxes[:, 0], 0, image_size[0]) * image_scale,
+  #   tf.clip_by_value(boxes[:, 1], 0, image_size[1]) * image_scale,
+  #   tf.clip_by_value(boxes[:, 2], 0, image_size[0]) * image_scale,
+  #   tf.clip_by_value(boxes[:, 3], 0, image_size[1]) * image_scale,
+  #   scores,
+  #   tf.cast(tf.gather(classes, top_detection_idx) + 1, tf.float32)
+  # ], axis=1)
   return detections
+
 
 
 def _generate_detections(cls_outputs, box_outputs, anchor_boxes, indices,

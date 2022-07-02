@@ -8,7 +8,7 @@ from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, merge_aug_bboxes,
 from ..builder import HEADS, build_head, build_roi_extractor
 from ..utils.brick_wrappers import adaptive_avg_pool2d
 from .cascade_roi_head import CascadeRoIHead
-
+from ..utils.visualize import show_image_from_tensor
 
 @HEADS.register_module()
 class HybridTaskCascadeRoIHead(CascadeRoIHead):
@@ -163,6 +163,13 @@ class HybridTaskCascadeRoIHead(CascadeRoIHead):
         bbox_head = self.bbox_head[stage]
         bbox_feats = bbox_roi_extractor(
             x[:len(bbox_roi_extractor.featmap_strides)], rois, scales=scales)
+        # if stage == 2:
+        #     print(rois[:10])
+        #     print(bbox_feats.shape)
+        #     for i in range(10):
+        #         show_image_from_tensor(bbox_feats[i][0].unsqueeze(0).cpu(), 'bbox_head_input')
+        # print(bbox_feats.shape)
+        # quit()
         if self.with_semantic and 'bbox' in self.semantic_fusion:
             bbox_semantic_feat = self.semantic_roi_extractor([semantic_feat],
                                                              rois, scales=scales)
@@ -171,6 +178,13 @@ class HybridTaskCascadeRoIHead(CascadeRoIHead):
                     bbox_semantic_feat, bbox_feats.shape[-2:])
             bbox_feats += bbox_semantic_feat
         cls_score, bbox_pred = bbox_head(bbox_feats)
+        # print(cls_score.shape)
+        # print(bbox_pred.shape)
+        # if stage==2:
+        #
+        #     print(bbox_pred[:10], cls_score[:10])
+        #     quit()
+
 
         bbox_results = dict(cls_score=cls_score, bbox_pred=bbox_pred)
         return bbox_results
@@ -330,7 +344,7 @@ class HybridTaskCascadeRoIHead(CascadeRoIHead):
 
         return losses
 
-    def simple_test(self, x, proposal_list, img_metas, rescale=False):
+    def simple_test(self, x, proposal_list, img_metas, rescale=False, scales=None, labels_pred= None):
         """Test without augmentation.
 
         Args:
@@ -362,83 +376,104 @@ class HybridTaskCascadeRoIHead(CascadeRoIHead):
         img_shapes = tuple(meta['img_shape'] for meta in img_metas)
         ori_shapes = tuple(meta['ori_shape'] for meta in img_metas)
         scale_factors = tuple(meta['scale_factor'] for meta in img_metas)
-
+        # print(ori_shapes, img_shapes)
         # "ms" in variable names means multi-stage
         ms_bbox_result = {}
         ms_segm_result = {}
         ms_scores = []
         rcnn_test_cfg = self.test_cfg
+        # print(proposal_list[0][:2])
+        # quit()
+        if labels_pred is None:
+            rois = bbox2roi(proposal_list)
 
-        rois = bbox2roi(proposal_list)
+            if rois.shape[0] == 0:
+                # There is no proposal in the whole batch
+                bbox_results = [[
+                    np.zeros((0, 5), dtype=np.float32)
+                    for _ in range(self.bbox_head[-1].num_classes)
+                ]] * num_imgs
 
-        if rois.shape[0] == 0:
-            # There is no proposal in the whole batch
-            bbox_results = [[
-                np.zeros((0, 5), dtype=np.float32)
-                for _ in range(self.bbox_head[-1].num_classes)
-            ]] * num_imgs
+                if self.with_mask:
+                    mask_classes = self.mask_head[-1].num_classes
+                    segm_results = [[[] for _ in range(mask_classes)]
+                                    for _ in range(num_imgs)]
+                    results = list(zip(bbox_results, segm_results))
+                else:
+                    results = bbox_results
 
-            if self.with_mask:
-                mask_classes = self.mask_head[-1].num_classes
-                segm_results = [[[] for _ in range(mask_classes)]
-                                for _ in range(num_imgs)]
-                results = list(zip(bbox_results, segm_results))
-            else:
-                results = bbox_results
+                return results
+            # print(rois[:10])
+            for i in range(self.num_stages):
+                bbox_head = self.bbox_head[i]
+                bbox_results = self._bbox_forward(
+                    i, x, rois, semantic_feat=semantic_feat, scales=scales)
+                # split batch bbox prediction back to each image
+                cls_score = bbox_results['cls_score']
+                bbox_pred = bbox_results['bbox_pred']
+                num_proposals_per_img = tuple(len(p) for p in proposal_list)
+                rois = rois.split(num_proposals_per_img, 0)
+                cls_score = cls_score.split(num_proposals_per_img, 0)
+                bbox_pred = bbox_pred.split(num_proposals_per_img, 0)
+                ms_scores.append(cls_score)
+                # print(cls_score[0].shape)
+                # print(ms_scores[0][0].shape)
+                # quit()
 
-            return results
+                if i < self.num_stages - 1:
+                    refine_rois_list = []
+                    for j in range(num_imgs):
+                        if rois[j].shape[0] > 0:
+                            bbox_label = cls_score[j][:, :-1].argmax(dim=1)
+                            refine_rois = bbox_head.regress_by_class(
+                                rois[j], bbox_label, bbox_pred[j], img_metas[j])
+                            refine_rois_list.append(refine_rois)
+                    rois = torch.cat(refine_rois_list)
 
-        for i in range(self.num_stages):
-            bbox_head = self.bbox_head[i]
-            bbox_results = self._bbox_forward(
-                i, x, rois, semantic_feat=semantic_feat)
-            # split batch bbox prediction back to each image
-            cls_score = bbox_results['cls_score']
-            bbox_pred = bbox_results['bbox_pred']
-            num_proposals_per_img = tuple(len(p) for p in proposal_list)
-            rois = rois.split(num_proposals_per_img, 0)
-            cls_score = cls_score.split(num_proposals_per_img, 0)
-            bbox_pred = bbox_pred.split(num_proposals_per_img, 0)
-            ms_scores.append(cls_score)
+            # average scores of each image by stages
+            cls_score = [
+                sum([score[i] for score in ms_scores]) / float(len(ms_scores))
+                for i in range(num_imgs)
+            ]
 
-            if i < self.num_stages - 1:
-                refine_rois_list = []
-                for j in range(num_imgs):
-                    if rois[j].shape[0] > 0:
-                        bbox_label = cls_score[j][:, :-1].argmax(dim=1)
-                        refine_rois = bbox_head.regress_by_class(
-                            rois[j], bbox_label, bbox_pred[j], img_metas[j])
-                        refine_rois_list.append(refine_rois)
-                rois = torch.cat(refine_rois_list)
+            # apply bbox post-processing to each image individually
+            det_bboxes = []
+            det_labels = []
+            # print(ori_shapes)
+            for i in range(num_imgs):
+                det_bbox, det_label = self.bbox_head[-1].get_bboxes(
+                    rois[i],
+                    cls_score[i],
+                    bbox_pred[i],
+                    img_shapes[i],
+                    scale_factors[i],
+                    rescale=rescale,
+                    cfg=rcnn_test_cfg)
+                det_bboxes.append(det_bbox)
+                det_labels.append(det_label)
+                # print(det_bbox.shape)
+                # print(det_bboxes[i][:10])
+                # quit()
 
-        # average scores of each image by stages
-        cls_score = [
-            sum([score[i] for score in ms_scores]) / float(len(ms_scores))
-            for i in range(num_imgs)
-        ]
+        else:
+            det_bboxes = proposal_list
+            det_labels = labels_pred
+            # print(proposal_list)
+            # print(rescale)
+            # quit()
 
-        # apply bbox post-processing to each image individually
-        det_bboxes = []
-        det_labels = []
-        for i in range(num_imgs):
-            det_bbox, det_label = self.bbox_head[-1].get_bboxes(
-                rois[i],
-                cls_score[i],
-                bbox_pred[i],
-                img_shapes[i],
-                scale_factors[i],
-                rescale=rescale,
-                cfg=rcnn_test_cfg)
-            det_bboxes.append(det_bbox)
-            det_labels.append(det_label)
         bbox_result = [
             bbox2result(det_bboxes[i], det_labels[i],
                         self.bbox_head[-1].num_classes)
             for i in range(num_imgs)
         ]
+        # print(det_bboxes[0].shape, bbox_result[0][2].shape)
         ms_bbox_result['ensemble'] = bbox_result
+        # print(det_bboxes[0].shape,bbox_result[0][0])
+        # quit()
 
         if self.with_mask:
+            # rescale = False
             if all(det_bbox.shape[0] == 0 for det_bbox in det_bboxes):
                 mask_classes = self.mask_head[-1].num_classes
                 segm_results = [[[] for _ in range(mask_classes)]
@@ -454,14 +489,21 @@ class HybridTaskCascadeRoIHead(CascadeRoIHead):
                     scale_factors[i] if rescale else det_bboxes[i]
                     for i in range(num_imgs)
                 ]
+                # print(rescale)
+                # print(_bboxes)
                 mask_rois = bbox2roi(_bboxes)
                 aug_masks = []
                 mask_roi_extractor = self.mask_roi_extractor[-1]
+                # mask_rois = torch.tensor([[0.0000e+00, 2.5030e-01, 5.8102e+01, 1.7402e+02, 3.4595e+02]]).cuda()
+                # print(mask_rois[:5])
+                # quit()
+                # show_image_from_tensor(x[0][0][0].unsqueeze(0).cpu(), 'mask_head_input')
                 mask_feats = mask_roi_extractor(
-                    x[:len(mask_roi_extractor.featmap_strides)], mask_rois)
+                    x[:len(mask_roi_extractor.featmap_strides)], mask_rois, scales=scales)
+
                 if self.with_semantic and 'mask' in self.semantic_fusion:
                     mask_semantic_feat = self.semantic_roi_extractor(
-                        [semantic_feat], mask_rois)
+                        [semantic_feat], mask_rois, scales=scales)
                     mask_feats += mask_semantic_feat
                 last_feat = None
 
@@ -486,6 +528,7 @@ class HybridTaskCascadeRoIHead(CascadeRoIHead):
                             [[]
                              for _ in range(self.mask_head[-1].num_classes)])
                     else:
+                        rescale = True
                         aug_mask = [mask[i] for mask in aug_masks]
                         merged_mask = merge_aug_masks(
                             aug_mask, [[img_metas[i]]] * self.num_stages,

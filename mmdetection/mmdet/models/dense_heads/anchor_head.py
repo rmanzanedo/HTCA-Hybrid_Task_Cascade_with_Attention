@@ -168,7 +168,7 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
         """
         return multi_apply(self.forward_single, feats)
 
-    def get_anchors(self, featmap_sizes, img_metas, device='cuda'):
+    def get_anchors(self, featmap_sizes, img_metas, device='cuda', scales=None):
         """Get anchors according to feature map sizes.
 
         Args:
@@ -186,7 +186,7 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
         # since feature map sizes of all images are the same, we only compute
         # anchors for one time
         multi_level_anchors = self.prior_generator.grid_priors(
-            featmap_sizes, device=device)
+            featmap_sizes, device=device, scales=scales)
         anchor_list = [multi_level_anchors for _ in range(num_imgs)]
 
         # for each image, we compute valid flags of multi level anchors
@@ -456,7 +456,8 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
              gt_bboxes,
              gt_labels,
              img_metas,
-             gt_bboxes_ignore=None):
+             gt_bboxes_ignore=None,
+             scales=None):
         """Compute losses of the head.
 
         Args:
@@ -481,7 +482,7 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
         device = cls_scores[0].device
 
         anchor_list, valid_flag_list = self.get_anchors(
-            featmap_sizes, img_metas, device=device)
+            featmap_sizes, img_metas, device=device,scales=scales)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
         cls_reg_targets = self.get_targets(
             anchor_list,

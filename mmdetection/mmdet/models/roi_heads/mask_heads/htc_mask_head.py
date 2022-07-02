@@ -4,6 +4,7 @@ from mmcv.cnn import ConvModule
 from mmdet.models.builder import HEADS
 from .fcn_mask_head import FCNMaskHead
 from .SAM_centermask import SpatialAttention
+from ...utils.visualize import show_image_from_tensor
 
 @HEADS.register_module()
 class HTCMaskHead(FCNMaskHead):
@@ -22,6 +23,9 @@ class HTCMaskHead(FCNMaskHead):
         # self.spatialAtt = SpatialAttention()
 
     def forward(self, x, res_feat=None, return_logits=True, return_feat=True):
+        # for i in range(x.shape[0]):
+        #     show_image_from_tensor(x[i][0].unsqueeze(0).cpu(), 'RoI')
+        # quit()
         if res_feat is not None:
             assert self.with_conv_res
             ############################################Mi codigo#####################################

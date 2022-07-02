@@ -5,6 +5,7 @@ import torch
 
 from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .base import BaseDetector
+from ..utils.visualize import show_image_from_tensor
 
 
 @DETECTORS.register_module()
@@ -68,13 +69,19 @@ class TwoStageDetector(BaseDetector):
         if not hasattr(self.backbone, 'inspector'):
             x = self.backbone(img)
             scales = None
+            proposal_list = None
         else:
-            x, scales = self.backbone(img)
+            x, scales, proposal_list = self.backbone(img)
         # print(len(x), x[0].shape)
         # quit()
         if self.with_neck:
             x = self.neck(x)
-        return x, scales
+        if scales!=None and len(x)!=len(scales):
+            for i in range(len(x)-len(scales)):
+                scales.append((scales[len(scales)-1])/2)
+
+        # show_image_from_tensor(x[0][0][0].unsqueeze(0).cpu(), 'output_from_effi_2')
+        return x, scales, proposal_list
 
     def forward_dummy(self, img):
         """Used for computing network flops.
@@ -131,7 +138,7 @@ class TwoStageDetector(BaseDetector):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
-        x, scales = self.extract_feat(img)
+        x, scales, proposals = self.extract_feat(img)
 
         losses = dict()
 
@@ -146,6 +153,7 @@ class TwoStageDetector(BaseDetector):
                 gt_labels=None,
                 gt_bboxes_ignore=gt_bboxes_ignore,
                 proposal_cfg=proposal_cfg,
+                scales=scales,
                 **kwargs)
             losses.update(rpn_losses)
             # print(proposal_list[0].shape)
@@ -183,14 +191,27 @@ class TwoStageDetector(BaseDetector):
         """Test without augmentation."""
 
         assert self.with_bbox, 'Bbox head must be implemented.'
-        x = self.extract_feat(img)
+        # show_image_from_tensor(img[0].cpu(), 'original')
+        x, scales, proposals = self.extract_feat(img)
+        # print(x[0].shape)
+
         if proposals is None:
-            proposal_list = self.rpn_head.simple_test_rpn(x, img_metas)
+            # print(x[0].shape)
+            proposal_list = self.rpn_head.simple_test_rpn(x, img_metas, scales)
+        elif hasattr(self.backbone, 'inspector'):
+            proposal_list = [torch.from_numpy(proposals[0][:, :-1]).cuda()]
+            # proposal_list = self.rpn_head.simple_test_rpn(x, img_metas)
+            #print(proposal_list[-10:])
+            #quit()
+            labels_pred = [torch.from_numpy(proposals[0][:, -1]).type(torch.int64).cuda()]
+            return self.roi_head.simple_test(
+                x, proposal_list, img_metas, rescale=rescale, scales=scales, labels_pred=labels_pred)
         else:
             proposal_list = proposals
-
+        # print(proposal_list[0][:2])
+        # quit()
         return self.roi_head.simple_test(
-            x, proposal_list, img_metas, rescale=rescale)
+            x, proposal_list, img_metas, rescale=rescale, scales=scales)
 
     def aug_test(self, imgs, img_metas, rescale=False):
         """Test with augmentations.

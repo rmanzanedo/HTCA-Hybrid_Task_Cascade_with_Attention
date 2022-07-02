@@ -357,6 +357,9 @@ class BBoxHead(BaseModule):
         if bbox_pred is not None:
             bboxes = self.bbox_coder.decode(
                 rois[..., 1:], bbox_pred, max_shape=img_shape)
+            # print(img_shape)
+            # print(scale_factor)
+            # quit()
         else:
             bboxes = rois[:, 1:].clone()
             if img_shape is not None:
@@ -371,6 +374,9 @@ class BBoxHead(BaseModule):
         if cfg is None:
             return bboxes, scores
         else:
+            # print(cfg.score_thr, cfg.nms, cfg.max_per_img)
+            # print(scores)
+            # print(bboxes)
             det_bboxes, det_labels = multiclass_nms(bboxes, scores,
                                                     cfg.score_thr, cfg.nms,
                                                     cfg.max_per_img)
@@ -493,6 +499,11 @@ class BBoxHead(BaseModule):
             bboxes = self.bbox_coder.decode(
                 rois[:, 1:], bbox_pred, max_shape=max_shape)
             new_rois = torch.cat((rois[:, [0]], bboxes), dim=1)
+            # print(rois[:10])
+            # print(new_rois[:10])
+            # print(bbox_pred[:10])
+            # print(bboxes[:10])
+            # quit()
 
         return new_rois
 

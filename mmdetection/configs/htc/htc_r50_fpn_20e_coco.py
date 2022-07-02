@@ -8,3 +8,6 @@ log_config = dict(
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')
     ])
+data = dict(
+    samples_per_gpu=1,
+    workers_per_gpu=1,)

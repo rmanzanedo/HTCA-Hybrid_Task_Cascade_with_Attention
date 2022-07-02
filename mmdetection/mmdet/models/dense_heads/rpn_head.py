@@ -72,7 +72,8 @@ class RPNHead(AnchorHead):
              bbox_preds,
              gt_bboxes,
              img_metas,
-             gt_bboxes_ignore=None):
+             gt_bboxes_ignore=None,
+             scales=None):
         """Compute losses of the head.
 
         Args:
@@ -96,7 +97,8 @@ class RPNHead(AnchorHead):
             gt_bboxes,
             None,
             img_metas,
-            gt_bboxes_ignore=gt_bboxes_ignore)
+            gt_bboxes_ignore=gt_bboxes_ignore,
+            scales=scales)
         return dict(
             loss_rpn_cls=losses['loss_cls'], loss_rpn_bbox=losses['loss_bbox'])
 
@@ -139,6 +141,8 @@ class RPNHead(AnchorHead):
         cfg = self.test_cfg if cfg is None else cfg
         cfg = copy.deepcopy(cfg)
         img_shape = img_meta['img_shape']
+        # print(cfg)
+        # quit()
 
         # bboxes from different level should be independent during NMS,
         # level_ids are used as labels for batched NMS to separate them
@@ -165,6 +169,10 @@ class RPNHead(AnchorHead):
             rpn_bbox_pred = rpn_bbox_pred.permute(1, 2, 0).reshape(-1, 4)
 
             anchors = mlvl_anchors[level_idx]
+            # print(anchors.shape)
+            # print(anchors[:10])
+            # print(anchors[-10:])
+            # quit()
             if 0 < nms_pre < scores.shape[0]:
                 # sort is faster than topk
                 # _, topk_inds = scores.topk(cfg.nms_pre)
@@ -214,6 +222,8 @@ class RPNHead(AnchorHead):
         scores = torch.cat(mlvl_scores)
         anchors = torch.cat(mlvl_valid_anchors)
         rpn_bbox_pred = torch.cat(mlvl_bboxes)
+        # print(anchors[:2])
+        # quit()
         proposals = self.bbox_coder.decode(
             anchors, rpn_bbox_pred, max_shape=img_shape)
         ids = torch.cat(level_ids)
