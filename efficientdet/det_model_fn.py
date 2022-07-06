@@ -412,12 +412,7 @@ def coco_metric_fn(batch_size,
     box_outputs_per_sample = kwargs['box_outputs_all'][index]
     indices_per_sample = kwargs['indices_all'][index]
     classes_per_sample = kwargs['classes_all'][index]
-    detections = anchor_labeler.generate_detections(
-        cls_outputs_per_sample, box_outputs_per_sample, indices_per_sample,
-        classes_per_sample, tf.slice(kwargs['source_ids'], [index], [1]),
-        tf.slice(kwargs['image_scales'], [index], [1]),
-        disable_pyfun=kwargs.get('disable_pyfun', None),
-    )
+    detections = anchor_labeler.generate_detections(cls_outputs_per_sample, box_outputs_per_sample, indices_per_sample,classes_per_sample, tf.slice(kwargs['source_ids'], [index], [1]), tf.slice(kwargs['image_scales'], [index], [1]),disable_pyfun=kwargs.get('disable_pyfun', None),)
     detections_bs.append(detections)
 
   if testdev_dir:

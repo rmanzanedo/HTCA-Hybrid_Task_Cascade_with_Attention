@@ -318,6 +318,7 @@ def det_post_process(params: Dict[Any, Any], cls_outputs: Dict[int, tf.Tensor],
     }
     det_model_fn.add_metric_fn_inputs(params, cls_outputs, box_outputs, outputs,
                                       -1)
+    # det_model_fn.add_metric_fn_inputs(params, cls_outputs, box_outputs, outputs)
 
     # Create anchor_label for picking top-k predictions.
     eval_anchors = anchors.Anchors(params['min_level'], params['max_level'],
@@ -332,6 +333,8 @@ def det_post_process(params: Dict[Any, Any], cls_outputs: Dict[int, tf.Tensor],
         box_outputs_per_sample = outputs['box_outputs_all'][index]
         indices_per_sample = outputs['indices_all'][index]
         classes_per_sample = outputs['classes_all'][index]
+        # params['disable_pyfun']=False
+        min_score_thresh=0.0
         detections = anchor_labeler.generate_detections(
             cls_outputs_per_sample,
             box_outputs_per_sample,

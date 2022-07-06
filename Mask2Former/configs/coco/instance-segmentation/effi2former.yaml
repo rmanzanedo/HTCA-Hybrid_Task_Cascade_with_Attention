@@ -1,5 +1,7 @@
 _BASE_: Base-COCO-InstanceSegmentation.yaml
 MODEL:
+  PIXEL_MEAN: [ 0, 0, 0 ]
+  PIXEL_STD: [ 1, 1, 1 ]
   META_ARCHITECTURE: "MaskFormer"
   BACKBONE:
     NAME: "build_efficientDet_backbone"

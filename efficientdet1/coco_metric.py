@@ -130,6 +130,7 @@ class EvaluationMetric(object):
         return np.array([0.], dtype=np.float32)
       else:
         # Run on validation dataset.
+        box_result_list = []
         detections = np.array(self.detections)
         image_ids = list(set(detections[:, 0]))
         coco_dt = self.coco_gt.loadRes(detections)
@@ -139,9 +140,23 @@ class EvaluationMetric(object):
         coco_eval.accumulate()
         coco_eval.summarize()
         coco_metrics = coco_eval.stats
+        for det in self.detections:
+          box_result_list.append({
+              'image_id': int(det[0]),
+              'category_id': int(det[6]),
+              'bbox': np.around(
+                  det[1:5].astype(np.float64), decimals=2).tolist(),
+              'score': float(np.around(det[5], decimals=3)),
+          })
+        output_path = os.path.join('output',
+                                   'detections_val2017_test_results.json')
+        logging.info('Writing output json file to: %s', output_path)
+        with tf.io.gfile.GFile(output_path, 'w') as fid:
+          json.dump(box_result_list, fid)
         # clean self.detections after evaluation is done.
         # this makes sure the next evaluation will start with an empty list of
         # self.detections.
+        tf.print(detections)
         self._reset()
         return np.array(coco_metrics, dtype=np.float32)
 

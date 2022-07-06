@@ -96,6 +96,7 @@ class EfficientDet(Backbone):
         #         # print(out_dim)
         #     feats[i] = torch.stack(feats[i]).cuda()
         # print('ok')
+        # show_image_from_tensor(feats['p2'][0][0].unsqueeze(0).cpu(), 'output_from_effi_1')
 
 
         return feats

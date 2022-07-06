@@ -32,14 +32,14 @@ foto = '/disk2/datasets/PennFudanPed/PNGImages/FudanPed00001.png'
 im = cv2.imread(foto)
 cfg = get_cfg()
 # cfg.merge_from_file("configs/COCO-Detection/solo-effi.yaml")
-# cfg.merge_from_file("configs/COCO-InstanceSegmentation/effi_mask_rcnn.yaml")
-# cfg.MODEL.WEIGHTS = 'output_effimask/test1/model_0004999.pth'
+cfg.merge_from_file("configs/COCO-InstanceSegmentation/effi_mask_rcnn.yaml")
+cfg.MODEL.WEIGHTS = 'output_effimask/test6/model_0179999.pth'
 
 # cfg.merge_from_file("configs/COCO-InstanceSegmentation/effi-mask_sam.yaml")
 # cfg.MODEL.WEIGHTS = 'output_effisam/test1/model_0004999.pth'
 
-cfg.merge_from_file("configs/PennFudanPed-InstanceSegmentation/effi_mask_rcnn.yaml")
-cfg.MODEL.WEIGHTS = 'output_effimask_penn/model_final.pth'
+# cfg.merge_from_file("configs/PennFudanPed-InstanceSegmentation/effi_mask_rcnn.yaml")
+# cfg.MODEL.WEIGHTS = 'output_effimask_penn/model_final.pth'
 
 args = default_argument_parser().parse_args()
 # print("Command Line Args:", args)
@@ -65,5 +65,5 @@ out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 # cv2.imshow('Image', )
 # filename = '/disk2/datasets/vis/prediction_effi_detectron.jpg'
 # filename = '/disk2/datasets/vis/prediction_effimask.jpg'
-filename = '/disk2/datasets/vis/prediction_effimask.jpg'
+filename = '/disk2/datasets/vis/prediction_effimask_7.jpg'
 cv2.imwrite(filename, out.get_image()[:, :, ::-1])

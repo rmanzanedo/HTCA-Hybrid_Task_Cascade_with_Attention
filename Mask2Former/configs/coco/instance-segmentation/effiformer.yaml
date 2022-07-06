@@ -1,5 +1,7 @@
 _BASE_: Base-COCO-InstanceSegmentation.yaml
 MODEL:
+  PIXEL_MEAN: [ 0, 0, 0 ]
+  PIXEL_STD: [ 1, 1, 1 ]
   META_ARCHITECTURE: "MaskFormer"
   BACKBONE:
     NAME: "build_efficientDet_backbone"
@@ -49,9 +51,16 @@ MODEL:
 SOLVER:
   AMP:
     ENABLED: TRUE
+  IMS_PER_BATCH: 1
+  BASE_LR: 0.0001
+  STEPS: (5244448, 5681472)
+  MAX_ITER: 5863300
+  WARMUP_FACTOR: 1.0
 INPUT:
   MIN_SIZE_TRAIN: (480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800)
   CROP:
     ENABLED: True
     TYPE: "absolute_range"
     SIZE: (384, 600)
+TEST:
+  EVAL_PERIOD: 500000

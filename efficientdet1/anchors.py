@@ -90,7 +90,8 @@ def decode_box_outputs(rel_codes, anchors):
   xmin = xcenter - w / 2.
   ymax = ycenter + h / 2.
   xmax = xcenter + w / 2.
-  return np.column_stack([ymin, xmin, ymax, xmax])
+  # return np.column_stack([ymin, xmin, ymax, xmax])
+  return np.column_stack([xmin, ymin, xmax, ymax])
 
 
 def decode_box_outputs_tf(rel_codes, anchors):
@@ -121,9 +122,10 @@ def decode_box_outputs_tf(rel_codes, anchors):
   ymax = ycenter + h / 2.
   xmax = xcenter + w / 2.
   return tf.stack([ymin, xmin, ymax, xmax], axis=-1)
+  # return tf.stack([xmin, ymin, w,h], axis=-1)
 
 
-@tf.autograph.to_graph
+# @tf.autograph.to_graph
 def nms_tf(dets, thresh):
   """Non-maximum suppression with tf graph mode."""
   x1 = dets[:, 0]
@@ -324,6 +326,8 @@ def _generate_detections_tf(cls_outputs,
   scores = tf.math.sigmoid(cls_outputs)
   # apply bounding box regression to anchors
   boxes = decode_box_outputs_tf(box_outputs, anchor_boxes)
+  # boxes = decode_box_outputs(
+  #     box_outputs.swapaxes(0, 1), anchor_boxes.swapaxes(0, 1))
   #
   # obtener las boxes que realmente son objectos
   if use_native_nms:
@@ -344,6 +348,9 @@ def _generate_detections_tf(cls_outputs,
     detections = tf.gather(all_detections, top_detection_idx)
     scores = detections[:, 4]
     boxes = detections[:, :4]
+  # print('shape of top_detection_idx: '.format(top_detection_idx.shape))
+    # print('shape of all detections: '.format(all_detections.shape))
+  # print('shape of final boxes: '.format(boxes.shape))
 
   image_size = utils.parse_image_size(image_size)
   ############################################Mi codigo ###############################################################

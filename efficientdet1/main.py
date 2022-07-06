@@ -312,7 +312,7 @@ def main(_):
         precision=None,
     )
 
-    eval_estimator = tf.estimator.tpu.TPUEstimator(
+    eval_estimator= tf.estimator.tpu.TPUEstimator(
         model_fn=model_fn_instance,
         use_tpu=FLAGS.use_tpu,
         train_batch_size=FLAGS.train_batch_size,

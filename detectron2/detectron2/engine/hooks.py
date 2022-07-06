@@ -553,7 +553,7 @@ class EvalHook(HookBase):
             # do the last eval in after_train
             if next_iter != self.trainer.max_iter:
                 self._do_eval()
-                # # # # # # # # # # # # mi codigo # # # # # # # # # # # # # #
+                # # # # # # # # # # # mi codigo # # # # # # # # # # # # # #
                 # print('ok')
 
     def after_train(self):

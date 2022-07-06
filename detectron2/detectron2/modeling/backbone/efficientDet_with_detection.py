@@ -203,6 +203,6 @@ def build_efficientDet_with_detecttions_backbone(cfg, input_shape, inspector=Non
         use_xla=inspector.use_xla,
         model_params=inspector.model_config.as_dict())
 
-    # driver.load(inspector.saved_model_dir)
+    driver.load(inspector.saved_model_dir)
 
     return EfficientDet_with_detections(inspector, driver, cfg.MODEL.BACKBONE.OUT_FEATURES)

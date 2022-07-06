@@ -15,6 +15,7 @@ from detectron2.utils.memory import retry_if_cuda_oom
 
 from .modeling.criterion import SetCriterion
 from .modeling.matcher import HungarianMatcher
+from detectron2.utils.visualizer import show_image_from_tensor
 
 
 @META_ARCH_REGISTRY1.register()
@@ -231,6 +232,8 @@ class MaskFormer(nn.Module):
                 mode="bilinear",
                 align_corners=False,
             )
+            # show_image_from_tensor(mask_pred_results[0][0].unsqueeze(0).cpu(), 'output_mask')
+
 
             del outputs
 
@@ -265,6 +268,8 @@ class MaskFormer(nn.Module):
                     instance_r = retry_if_cuda_oom(self.instance_inference)(mask_cls_result, mask_pred_result)
                     processed_results[-1]["instances"] = instance_r
 
+            # print(processed_results[0]["instances"])#.shape, processed_results.device)
+            # quit()
             return processed_results
 
     def prepare_targets(self, targets, images):
