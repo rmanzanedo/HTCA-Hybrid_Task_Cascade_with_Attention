@@ -19,8 +19,15 @@ _base_ = './htc_effi_without_semantic.py'
 #         num_outs=5)))
 
 # learning policy
-lr_config = dict(step=[19, 23, 25, 28])
-runner = dict(type='EpochBasedRunner', max_epochs=30)
+# lr_config = dict(step=[19, 23, 25, 28])
+# runner = dict(type='EpochBasedRunner', max_epochs=30)
+runner = dict(type='EpochBasedRunner', max_epochs=12)
+lr_config = dict(
+    policy='step',
+    warmup='linear',
+    warmup_iters=500,
+    warmup_ratio=0.001,
+    step=[8, 11])
 
 # _base_ = './htc_effi_without_semantic.py'
 
@@ -112,3 +119,5 @@ log_config = dict(
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')
     ])
+
+load_from ='../checkpoints/htc_for_efficientNet.pth'

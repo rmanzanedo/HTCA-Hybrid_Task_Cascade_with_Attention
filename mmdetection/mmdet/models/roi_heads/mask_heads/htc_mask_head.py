@@ -35,9 +35,15 @@ class HTCMaskHead(FCNMaskHead):
             x = x + res_feat
         for conv in self.convs:
             x = conv(x)
+        ############################################Mi codigo#####################################
+        # x = self.spatialAtt(x)
+        ############################################Original######################################
         res_feat = x
         outs = []
         if return_logits:
+            ############################################Mi codigo#####################################
+            # x = self.spatialAtt(x)
+            ############################################Original######################################
             x = self.upsample(x)
             if self.upsample_method == 'deconv':
                 x = self.relu(x)
