@@ -1,0 +1,29 @@
+_BASE_: "../Base-RCNN-FPN.yaml"
+MODEL:
+#  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  PIXEL_MEAN: [0, 0, 0]
+  BACKBONE:
+    NAME: "build_efficientDet_with_detecttions_backbone"
+    OUT_FEATURES: [ "p3", "p4", "p5" ]
+  MASK_ON: False
+  RESNETS:
+    OUT_FEATURES: [ "p2", "p3", "p4", "p5" ]
+  PROPOSAL_GENERATOR:
+    NAME: "PrecomputedProposals"
+  ROI_HEADS:
+    NAME: "StandardROIHeads"
+    IN_FEATURES: ["p3", "p4", "p5" ]
+#  ROI_MASK_HEAD:
+#    NAME: "SpatialAttentionMaskHead"
+#    SAM_LEVEL_ASSIGN: True
+#  RESNETS:
+#    DEPTH: 50
+  BOX_ON: False
+SOLVER:
+  IMS_PER_BATCH: 1
+INPUT:
+  FORMAT: "RGB"
+#  INPUT:
+#  MAX_SIZE_TEST: 5000
+#  MIN_SIZE_TEST: [1,5000]
+#  MIN_SIZE_TRAIN_SAMPLING: "range"
