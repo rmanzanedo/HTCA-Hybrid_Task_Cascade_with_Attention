@@ -6,9 +6,9 @@ def arg_parse():
     parser = argparse.ArgumentParser(description='all together')
 
     # Datasets parameters
-    parser.add_argument('--seg_dir', type=str, default='./efficientdet/VOCdevkit/VOC2012',
+    parser.add_argument('--seg_dir', type=str, default='./efficientdet2/VOCdevkit/VOC2012',
                         help="root path to data directory")
-    parser.add_argument('--img_dir', type=str, default='./efficientdet/VOCdevkit/VOC2012',
+    parser.add_argument('--img_dir', type=str, default='./efficientdet2/VOCdevkit/VOC2012',
                         help="root path to data directory")
     parser.add_argument('--train_set',type=int, default=2)
     parser.add_argument('--val_set', type=int, default=8)
@@ -43,7 +43,7 @@ def arg_parse():
 
     #efficiendet
 
-    parser.add_argument('--model_name', default='efficientdet-d7', help='Model.')
+    parser.add_argument('--model_name', default='efficientdet2-d7', help='Model.')
     parser.add_argument('--logdir', default='log', help='log directory.')
     parser.add_argument('--runmode', default='saved_model_infer', help='Run mode: {freeze, bm, dry}')
     parser.add_argument('--trace_filename', default=None, help='Trace file name.')
@@ -75,7 +75,7 @@ def arg_parse():
     parser.add_argument('--min_score_thresh', default=None, help='Score threshold to show box.')
 
     # For saved model.
-    parser.add_argument('--saved_model_dir', default='efficientdet/saved_model/efficientdet-d7_frozen.pb',
+    parser.add_argument('--saved_model_dir', default='efficientdet2/saved_model/efficientdet2-d7_frozen.pb',
                         help='Folder path for saved model.')
     parser.add_argument('--tflite_path', default=None, help='Path for exporting tflite file.')
 

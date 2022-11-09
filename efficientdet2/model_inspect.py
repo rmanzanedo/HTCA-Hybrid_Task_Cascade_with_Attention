@@ -22,7 +22,6 @@ from __future__ import print_function
 import os
 import time
 
-import torch
 from absl import app
 from absl import flags
 from absl import logging
@@ -32,24 +31,62 @@ from PIL import Image
 import tensorflow.compat.v1 as tf
 from typing import Text, Tuple, List
 
-from efficientdet import hparams_config
-from efficientdet import inference
-from efficientdet import utils
+import hparams_config
+import inference
+import utils
 from tensorflow.python.client import timeline  # pylint: disable=g-direct-tensorflow-import
 import pickle
-import requests
+import contextlib
 import io
-import glob
-from torchvision import transforms
+from pycocotools.coco import COCO
+from collections import Counter
 
-def add_to_dict(d, k, v):
-    if k in d.keys():
-        d[k].append(v)
-    elif k not in d.keys():
-        d[k] = [v]
-        # d[k].append(v)
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
 
-    return d
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
+
+flags.DEFINE_string('model_name', 'efficientdet2-d0', 'Model.')
+flags.DEFINE_string('logdir', '/tmp/deff/', 'log directory.')
+flags.DEFINE_string('runmode', 'dry', 'Run mode: {freeze, bm, dry}')
+flags.DEFINE_string('trace_filename', None, 'Trace file name.')
+
+flags.DEFINE_integer('threads', 0, 'Number of threads.')
+flags.DEFINE_integer('bm_runs', 10, 'Number of benchmark runs.')
+flags.DEFINE_string('tensorrt', None, 'TensorRT mode: {None, FP32, FP16, INT8}')
+flags.DEFINE_bool('delete_logdir', True, 'Whether to delete logdir.')
+flags.DEFINE_bool('freeze', False, 'Freeze graph.')
+flags.DEFINE_bool('xla', False, 'Run with xla optimization.')
+flags.DEFINE_integer('batch_size', 1, 'Batch size for inference.')
+
+flags.DEFINE_string('ckpt_path', None, 'checkpoint dir used for eval.')
+flags.DEFINE_string('export_ckpt', None, 'Path for exporting new models.')
+
+flags.DEFINE_string(
+    'hparams', '', 'Comma separated k=v pairs of hyperparameters or a module'
+    ' containing attributes to use as hyperparameters.')
+
+flags.DEFINE_string('input_image', None, 'Input image path for inference.')
+flags.DEFINE_string('output_image_dir', None, 'Output dir for inference.')
+
+# For video.
+flags.DEFINE_string('input_video', None, 'Input video path for inference.')
+flags.DEFINE_string('output_video', None,
+                    'Output video path. If None, play it online instead.')
+
+# For visualization.
+flags.DEFINE_integer('line_thickness', None, 'Line thickness for box.')
+flags.DEFINE_integer('max_boxes_to_draw', None, 'Max number of boxes to draw.')
+flags.DEFINE_float('min_score_thresh', None, 'Score threshold to show box.')
+
+# For saved model.
+flags.DEFINE_string('saved_model_dir', '/tmp/saved_model',
+                    'Folder path for saved model.')
+flags.DEFINE_string('tflite_path', None, 'Path for exporting tflite file.')
+
+FLAGS = flags.FLAGS
 
 
 class ModelInspector(object):
@@ -103,12 +140,12 @@ class ModelInspector(object):
         config=self.model_config)
 
     # Write to tfevent for tensorboard.
-    # train_writer = tf.summary.FileWriter(self.logdir)
-    # train_writer.add_graph(tf.get_default_graph())
-    # train_writer.flush()
+    train_writer = tf.summary.FileWriter(self.logdir)
+    train_writer.add_graph(tf.get_default_graph())
+    train_writer.flush()
 
-    # all_outputs = list(cls_outputs.values()) + list(box_outputs.values())
-    # return all_outputs
+    all_outputs = list(cls_outputs.values()) + list(box_outputs.values())
+    return all_outputs
 
   def export_saved_model(self, **kwargs):
     """Export a saved model for inference."""
@@ -123,167 +160,94 @@ class ModelInspector(object):
     driver.build()
     driver.export(self.saved_model_dir, tflite_path=self.tflite_path)
 
-
-  def saved_model_inference_for_transformer(self, imgs, driver, layers, type='train', **kwargs):
-
-      # # preprocessing = transforms.ToPILImage()
-      # postprocessing = transforms.ToTensor()
-      # get_features = True
-      # output = {}
-      # # feats = []
-      # raw_images = []
-      # for img in imgs:
-      #     # x = preprocessing(img.squeeze().cpu())
-      #     # raw_images.append(np.array(x, dtype='uint8'))
-      #     x = [np.array(x, dtype='uint8')]
-      #     detections_bs = driver.serve_images(x, get_features)[2:]
-      #     detections_bs.reverse()
-      #     for k, i in zip(layers, detections_bs):
-      #         v = postprocessing(i[0])
-      #         output = add_to_dict(output, k, v)
-      #         # print(k, len(output[k]), v.shape)
-      #
-      #
-      #
-      #     # print(i, output[i].shape)
-      # # print(len(feats))
-
-      postprocessing = transforms.ToTensor()
-      get_features = True
-      output = {}
-      output_detections = []
-
-      for n, img in enumerate(imgs):
-
-          x = img.squeeze().cpu().numpy().transpose(1, 2, 0)
-          x = [x.astype(np.uint8)]
-          detections_feat, detections_bs = driver.serve_images(x, get_features)
-          output_detections.append(detections_bs[0][:, 1:])
-          detections_feat.reverse()
-          for k, i in zip(layers, detections_feat):
-              v = postprocessing(i[0])
-              output = add_to_dict(output, k, v)
-
-      return output, output_detections
-
-  def saved_model_inference(self, dataset, driver, imgs, type='train', **kwargs):
+  def saved_model_inference(self, image_path_pattern, output_dir, **kwargs):
     """Perform inference for the given saved model."""
-    # driver = inference.ServingDriver(
-    #     self.model_name,
-    #     self.ckpt_path,
-    #     batch_size=self.batch_size,
-    #     use_xla=self.use_xla,
-    #     model_params=self.model_config.as_dict(),
-    #     **kwargs)
-    # driver.load(self.saved_model_dir)
-
-    # driver = inference.ServingDriver(
-    #     inspector.model_name,
-    #     inspector.ckpt_path,
-    #     batch_size=inspector.batch_size,
-    #     use_xla=inspector.use_xla,
-    #     model_params=inspector.model_config.as_dict())
-    #
-    # driver.load(inspector.saved_model_dir)
+    driver = inference.ServingDriver(
+        self.model_name,
+        self.ckpt_path,
+        batch_size=self.batch_size,
+        use_xla=self.use_xla,
+        model_params=self.model_config.as_dict(),
+        **kwargs)
+    driver.load(self.saved_model_dir)
 
     # Serving time batch size should be fixed.
     batch_size = self.batch_size or 1
     # all_files = list(tf.io.gfile.glob(image_path_pattern))
-    feats = []
-    dets = []
     ############################################################################################################
-    if dataset == 'voc' or dataset == 'penn':
+    if image_path_pattern== 'seg':
+        # file = open("VOCdevkit/VOC2012/ImageSets/Segmentation/trainval.txt", "r")
+        # image_name = file.readlines()
+        # all_files = [os.path.join("VOCdevkit/VOC2012/JPEGImages", fname[:-1] + '.jpg') for fname in image_name]
+        #
+        # file = open("VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt", "r")
+        # image_name = file.readlines()
+        # train_files =  [fname[:-1] for fname in image_name]
+        #
+        # file = open("VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt", "r")
+        # image_name = file.readlines()
+        # val_files = [fname[:-1] for fname in image_name]
+        fname = os.path.join('../lvis_v1_train_cocofied.json')
+        with contextlib.redirect_stdout(io.StringIO()):
+            data = COCO(fname)
 
-      all_files = imgs
-
-      get_features=True
-      num_batches = (len(all_files) + batch_size - 1) // batch_size
-
-      for i in range(num_batches):
-        batch_files = all_files[i * batch_size:(i + 1) * batch_size]
-        height, width = self.model_config.image_size
-        images = [Image.open(f).convert('RGB') for f in batch_files]
-        if len(set([m.size for m in images])) > 0:
-          # Resize only if images in the same batch have different sizes.
-          images = [m.resize((height, width)) for m in images]
-        raw_images = [np.array(m) for m in images]
-        size_before_pad = len(raw_images)
-        if size_before_pad < batch_size:
-          padding_size = batch_size - size_before_pad
-          raw_images += [np.zeros_like(raw_images[0])] * padding_size
-
-        detections_bs = driver.serve_images(raw_images, get_features)
-        feats.append(detections_bs[0])
-        detections_bs[1][:, :, 0] = np.full(detections_bs[1].shape[:2], i)
-        dets.append(np.reshape(detections_bs[1], (-1, 7)))
-
-    elif dataset== 'coco' or dataset == 'lvis':
-      all_files = imgs
-
-      get_features = True
-      # print('all_files=', all_files)
-      num_batches = (len(all_files) + batch_size - 1) // batch_size
-
-      for i in range(num_batches):
-          # batch_files = all_files[i * batch_size:(i + 1) * batch_size]
-          height, width = self.model_config.image_size
-          # req = requests.get(data.loadImgs(ids=[imgs[i]])[0]['coco_url'])
-          # images = [Image.open(f) for f in batch_files]
-          # images = [Image.open(io.BytesIO(req.content)).convert('RGB')]
-          if type=='val':
-            for name in glob.glob('../datasets/coco/*/{:0>12d}.jpg'.format(imgs[i])):
-              images = [Image.open(name).convert('RGB')]
-          elif type == 'vis':
-            images = [Image.open(imgs[i]).convert('RGB')]
-          else:
-            images = [Image.open('../datasets/coco/{}2017/{:0>12d}.jpg'.format(type,imgs[i])).convert('RGB')]
-          rate = images[0].size[1]/images[0].size[0]
-          if len(set([m.size for m in images])) > 1:
-              # Resize only if images in the same batch have different sizes.
-              # dim = max(height, images[0].size[1], images[0].size[0])
-              # images = [m.resize((dim,dim)) for m in images]
-              images = [m.resize((height, width)) for m in images]
-            # images = [m.resize(( int(np.round(3*m.size[1]/2)), m.size[1])) for m in images]
-          raw_images = [np.array(m) for m in images]
-          size_before_pad = len(raw_images)
-          if size_before_pad < batch_size:
-              padding_size = batch_size - size_before_pad
-              raw_images += [np.zeros_like(raw_images[0])] * padding_size
-
-          detections_bs = driver.serve_images(raw_images, get_features)
-          feats.append(detections_bs[0])
-          detections_bs[1][:, :, 0] = np.full(detections_bs[1].shape[:2], i)
-          dets.append(np.reshape(detections_bs[1], (-1,7)))
+        all_files = list(Counter(data.catToImgs[1]).keys())
 
 
+
+
+        get_features=True
     else:
-        all_files = list(tf.io.gfile.glob(imgs))
+        all_files = list(tf.io.gfile.glob(image_path_pattern))
         get_features = False
     #########################################################################################################################
 
-        # print('all_files=', all_files)
-        num_batches = (len(all_files) + batch_size - 1) // batch_size
+    print('all_files=', all_files)
+    num_batches = (len(all_files) + batch_size - 1) // batch_size
 
-        for i in range(num_batches):
-          batch_files = all_files[i * batch_size:(i + 1) * batch_size]
-          height, width = self.model_config.image_size
-          images = [Image.open(f) for f in batch_files]
-          if len(set([m.size for m in images])) > 1:
-            # Resize only if images in the same batch have different sizes.
-            images = [m.resize((height, width)) for m in images]
-          raw_images = [np.array(m) for m in images]
-          size_before_pad = len(raw_images)
-          if size_before_pad < batch_size:
-            padding_size = batch_size - size_before_pad
-            raw_images += [np.zeros_like(raw_images[0])] * padding_size
+    for i in range(num_batches):
+      batch_files = all_files[i * batch_size:(i + 1) * batch_size]
+      height, width = self.model_config.image_size
+      images = [Image.open(f) for f in batch_files]
+      # images = [Image.open('../../train2017/{:0>12d}.jpg'.format(f)).convert('RGB') for f in batch_files]
+      if len(set([m.size for m in images])) > 1:
+        # Resize only if images in the same batch have different sizes.
+        images = [m.resize((height, width)) for m in images]
+      raw_images = [np.array(m) for m in images]
+      size_before_pad = len(raw_images)
+      if size_before_pad < batch_size:
+        padding_size = batch_size - size_before_pad
+        raw_images += [np.zeros_like(raw_images[0])] * padding_size
 
       ################################################## Mi código #####################################
 
-          detections_bs = driver.serve_images(raw_images, get_features)
+      detections_bs = driver.serve_images(raw_images, get_features)
+      if not get_features:
+          for j in range(size_before_pad):
+            img = driver.visualize(raw_images[j], detections_bs[j], **kwargs)
+            img_id = str(i * batch_size + j)
+            output_image_path = os.path.join(output_dir, img_id + '.jpg')
+            Image.fromarray(img).save(output_image_path)
+            logging.info('writing file to %s', output_image_path)
 
-          feats.append(detections_bs[0])
-    # print(all_files[i * batch_size:(i + 1) * batch_size])
-    return feats, np.concatenate(dets)
+      else:
+
+
+          files = [fname for fname in batch_files]
+          print(files)
+
+
+
+
+
+
+          train_file = open(os.path.join(output_dir, 'coco_train'), 'ab')
+          pickle.dump([files, detections_bs[0]], train_file)
+          train_file.close()
+
+          # source, destination
+
+
   ###################################################################################
 
   def saved_model_benchmark(self,
@@ -542,7 +506,7 @@ class ModelInspector(object):
                                     kwargs['output_image_dir'], **config_dict)
       elif runmode == 'saved_model_infer':
         self.saved_model_inference(kwargs['input_image'],
-                                   kwargs['output_image_dir'], kwargs['imagenes'], **config_dict)
+                                   kwargs['output_image_dir'], **config_dict)
       elif runmode == 'saved_model_video':
         self.saved_model_video(kwargs['input_video'], kwargs['output_video'],
                                **config_dict)
@@ -556,35 +520,34 @@ class ModelInspector(object):
       raise ValueError('Unkown runmode {}'.format(runmode))
 
 
-def main(args, img_list):
-  # if tf.io.gfile.exists(FLAGS.logdir) and FLAGS.delete_logdir:
-  #   logging.info('Deleting log dir ...')
-  #   tf.io.gfile.rmtree(FLAGS.logdir)
+def main(_):
+  if tf.io.gfile.exists(FLAGS.logdir) and FLAGS.delete_logdir:
+    logging.info('Deleting log dir ...')
+    tf.io.gfile.rmtree(FLAGS.logdir)
 
   inspector = ModelInspector(
-      model_name=args.model_name,
-      logdir=args.logdir,
-      tensorrt=args.tensorrt,
-      use_xla=args.xla,
-      ckpt_path=args.ckpt_path,
-      export_ckpt=args.export_ckpt,
-      saved_model_dir=args.saved_model_dir,
-      tflite_path=args.tflite_path,
-      batch_size=args.batch_size,
-      hparams=args.hparams)
+      model_name=FLAGS.model_name,
+      logdir=FLAGS.logdir,
+      tensorrt=FLAGS.tensorrt,
+      use_xla=FLAGS.xla,
+      ckpt_path=FLAGS.ckpt_path,
+      export_ckpt=FLAGS.export_ckpt,
+      saved_model_dir=FLAGS.saved_model_dir,
+      tflite_path=FLAGS.tflite_path,
+      batch_size=FLAGS.batch_size,
+      hparams=FLAGS.hparams)
   inspector.run_model(
-      args.runmode,
-      input_image=args.input_image,
-      output_image_dir=args.output_image_dir,
-      input_video=args.input_video,
-      output_video=args.output_video,
-      line_thickness=args.line_thickness,
-      max_boxes_to_draw=args.max_boxes_to_draw,
-      min_score_thresh=args.min_score_thresh,
-      bm_runs=args.bm_runs,
-      threads=args.threads,
-      trace_filename=args.trace_filename,
-      imagenes=img_list)
+      FLAGS.runmode,
+      input_image=FLAGS.input_image,
+      output_image_dir=FLAGS.output_image_dir,
+      input_video=FLAGS.input_video,
+      output_video=FLAGS.output_video,
+      line_thickness=FLAGS.line_thickness,
+      max_boxes_to_draw=FLAGS.max_boxes_to_draw,
+      min_score_thresh=FLAGS.min_score_thresh,
+      bm_runs=FLAGS.bm_runs,
+      threads=FLAGS.threads,
+      trace_filename=FLAGS.trace_filename)
 
 
 if __name__ == '__main__':

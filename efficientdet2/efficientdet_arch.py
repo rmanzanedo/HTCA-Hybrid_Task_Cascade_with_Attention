@@ -31,10 +31,10 @@ from absl import logging
 import numpy as np
 import tensorflow.compat.v1 as tf
 
-# from efficientdet import hparams_config
-# from efficientdet import utils
-# from efficientdet.backbone import backbone_factory
-# from efficientdet.backbone import efficientnet_builder
+# from efficientdet2 import hparams_config
+# from efficientdet2 import utils
+# from efficientdet2.backbone import backbone_factory
+# from efficientdet2.backbone import efficientnet_builder
 
 import hparams_config
 import utils
@@ -765,6 +765,7 @@ def efficientdet(features, model_name=None, config=None, **kwargs):
   logging.info('backbone+fpn+box params/flops = {:.6f}M, {:.9f}B'.format(
       *utils.num_params_flops()))
 
+  # print(features)
   return class_outputs, box_outputs, fpn_feats
   ###################################################################### Original #####################################
 

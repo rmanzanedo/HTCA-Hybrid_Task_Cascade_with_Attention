@@ -51,7 +51,7 @@ class ModelInspectTest(tf.test.TestCase):
       shutil.rmtree(self.savedmodel_dir)
 
     self.params = dict(
-        model_name='efficientdet-d0',
+        model_name='efficientdet2-d0',
         logdir=os.path.join(self.tempdir, 'logdir'),
         tensorrt=False,
         use_xla=False,
@@ -105,7 +105,7 @@ class ModelInspectTest(tf.test.TestCase):
         os.path.exists(os.path.join(self.savedmodel_dir, 'saved_model.pb')))
     self.assertTrue(
         os.path.exists(
-            os.path.join(self.savedmodel_dir, 'efficientdet-d0_frozen.pb')))
+            os.path.join(self.savedmodel_dir, 'efficientdet2-d0_frozen.pb')))
 
   def test_saved_model_fp16(self):
     self.params['hparams'] = 'precision=mixed_float16'
@@ -173,7 +173,7 @@ class ModelInspectTest(tf.test.TestCase):
 
     # Use the frozen graph to do inference.
     inspector.saved_model_dir = os.path.join(self.params['saved_model_dir'],
-                                             'efficientdet-d0_frozen.pb')
+                                             'efficientdet2-d0_frozen.pb')
     outdir = os.path.join(self.tempdir, 'pb_infer_imgout')
     os.mkdir(outdir)
 

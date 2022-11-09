@@ -925,39 +925,39 @@ class SegRescale:
         ################################################### Mi codigo ############################################
         # w = 152
         # h = 100
-        w, h = 112, 112
-        for key in results.get('seg_fields', []):
-
-            dim = results[key].shape[0]/ results[key].shape[1]
-            # print('fname: {} ,shape del calculo de dim: {}, dim: {}, img: {}, img_shape: {}, ori_shape: {} '.format(results['ori_filename'],
-            #                                                                 results[key].shape,
-            #                                                                 dim, results['img'].shape, results['img_shape'], results['ori_shape'] ))
-            if dim <= 1:
-                out_dim = math.ceil(w*dim)
-                if out_dim < h:
-                    results[key] = mmcv.imresize(results[key], (w, out_dim), interpolation='nearest',
-                                                 backend=self.backend)
-                else:
-                    results[key] = mmcv.imresize(results[key], (w, h), interpolation='nearest', backend=self.backend)
-            else:
-                out_dim = math.ceil(h / dim)
-                if out_dim < w:
-                    results[key] = mmcv.imresize(results[key], (out_dim, h), interpolation='nearest',
-                                                 backend=self.backend)
-                else:
-                    results[key] = mmcv.imresize(results[key], (w, h), interpolation='nearest', backend=self.backend)
+        # w, h = 112, 112
+        # for key in results.get('seg_fields', []):
+        #
+        #     dim = results[key].shape[0]/ results[key].shape[1]
+        #     # print('fname: {} ,shape del calculo de dim: {}, dim: {}, img: {}, img_shape: {}, ori_shape: {} '.format(results['ori_filename'],
+        #     #                                                                 results[key].shape,
+        #     #                                                                 dim, results['img'].shape, results['img_shape'], results['ori_shape'] ))
+        #     if dim <= 1:
+        #         out_dim = math.ceil(w*dim)
+        #         if out_dim < h:
+        #             results[key] = mmcv.imresize(results[key], (w, out_dim), interpolation='nearest',
+        #                                          backend=self.backend)
+        #         else:
+        #             results[key] = mmcv.imresize(results[key], (w, h), interpolation='nearest', backend=self.backend)
+        #     else:
+        #         out_dim = math.ceil(h / dim)
+        #         if out_dim < w:
+        #             results[key] = mmcv.imresize(results[key], (out_dim, h), interpolation='nearest',
+        #                                          backend=self.backend)
+        #         else:
+        #             results[key] = mmcv.imresize(results[key], (w, h), interpolation='nearest', backend=self.backend)
 
         #######################################Original###################################
-        # for key in results.get('seg_fields', []):
-        #     dim = results[key].shape[0]/ results[key].shape[1]
-        #     # print('fname: {} ,shape del calculo de dim: {}, dim: {}, img: {}, img_shape: {}, ori_shape: {} '.format(
-        #     #     results['ori_filename'], results[key].shape, dim, results['img'].shape, results['img_shape'], results['ori_shape'] ))
-        #     if self.scale_factor != 1:
-        #         results[key] = mmcv.imrescale(
-        #             results[key],
-        #             self.scale_factor,
-        #             interpolation='nearest',
-        #             backend=self.backend)
+        for key in results.get('seg_fields', []):
+            # dim = results[key].shape[0]/ results[key].shape[1]
+            # print('fname: {} ,shape del calculo de dim: {}, dim: {}, img: {}, img_shape: {}, ori_shape: {} '.format(
+            #     results['ori_filename'], results[key].shape, dim, results['img'].shape, results['img_shape'], results['ori_shape'] ))
+            if self.scale_factor != 1:
+                results[key] = mmcv.imrescale(
+                    results[key],
+                    self.scale_factor,
+                    interpolation='nearest',
+                    backend=self.backend)
         return results
 
     def __repr__(self):

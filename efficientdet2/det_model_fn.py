@@ -24,13 +24,13 @@ from absl import logging
 import numpy as np
 import tensorflow.compat.v1 as tf
 
-# from efficientdet import anchors
-# from efficientdet import coco_metric
-# from efficientdet import efficientdet_arch
-# from efficientdet import hparams_config
-# from efficientdet import iou_utils
-# from efficientdet import retinanet_arch
-# from efficientdet import utils
+# from efficientdet2 import anchors
+# from efficientdet2 import coco_metric
+# from efficientdet2 import efficientdet_arch
+# from efficientdet2 import hparams_config
+# from efficientdet2 import iou_utils
+# from efficientdet2 import retinanet_arch
+# from efficientdet2 import utils
 
 import anchors
 import coco_metric
@@ -693,23 +693,23 @@ def efficientdet_model_fn(features, labels, mode, params):
       variable_filter_fn=variable_filter_fn)
 
 
-def get_model_arch(model_name='efficientdet-d0'):
+def get_model_arch(model_name='efficientdet2-d0'):
   """Get model architecture for a given model name."""
   if 'retinanet' in model_name:
     return retinanet_arch.retinanet
 
-  if 'efficientdet' in model_name:
+  if 'efficientdet2' in model_name:
     return efficientdet_arch.efficientdet
 
   raise ValueError('Invalide model name {}'.format(model_name))
 
 
-def get_model_fn(model_name='efficientdet-d0'):
+def get_model_fn(model_name='efficientdet2-d0'):
   """Get model fn for a given model name."""
   if 'retinanet' in model_name:
     return retinanet_model_fn
 
-  if 'efficientdet' in model_name:
+  if 'efficientdet2' in model_name:
     return efficientdet_model_fn
 
   raise ValueError('Invalide model name {}'.format(model_name))

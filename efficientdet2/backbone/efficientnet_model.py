@@ -33,7 +33,7 @@ import six
 from six.moves import xrange
 import tensorflow.compat.v1 as tf
 
-# from efficientdet import utils
+# from efficientdet2 import utils
 import utils
 
 GlobalParams = collections.namedtuple('GlobalParams', [

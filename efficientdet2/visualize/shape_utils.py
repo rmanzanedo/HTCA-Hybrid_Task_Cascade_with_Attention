@@ -22,7 +22,7 @@ from __future__ import print_function
 from six.moves import zip
 import tensorflow.compat.v1 as tf
 
-# from efficientdet.visualize import static_shape
+# from efficientdet2.visualize import static_shape
 from visualize import static_shape
 
 

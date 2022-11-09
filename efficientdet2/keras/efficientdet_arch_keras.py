@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Keras implementation of efficientdet."""
+"""Keras implementation of efficientdet2."""
 import functools
 from absl import logging
 import numpy as np
@@ -572,7 +572,7 @@ def efficientdet(features, model_name=None, config=None, **kwargs):
 
   Args:
     features: input tensor.
-    model_name: String of the model (eg. efficientdet-d0)
+    model_name: String of the model (eg. efficientdet2-d0)
     config: Dict of parameters for the network
     **kwargs: other parameters.
 

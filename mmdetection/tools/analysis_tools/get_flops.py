@@ -9,9 +9,9 @@ from mmdet.models import build_detector
 
 import sys
 sys.path.append('/disk2/htc')
-sys.path.append('/disk2/htc/efficientdet')
-import efficientdet.model_inspect1 as effi
-# from efficientdet import inference
+sys.path.append('/disk2/htc/efficientdet2')
+import efficientdet2.model_inspect1 as effi
+# from efficientdet2 import inference
 import tensorflow.compat.v1 as tf
 # import parser1
 
@@ -53,7 +53,7 @@ def parse_args():
         help='Pad the input image, the minimum size that is divisible '
         'by size_divisor, -1 means do not pad the image.')
 
-    parser.add_argument("--model_name", default="efficientdet-d7", help="Model.", )
+    parser.add_argument("--model_name", default="efficientdet2-d7", help="Model.", )
     parser.add_argument("--logdir", default="log", help="log directory.")
     parser.add_argument("--runmode", default="saved_model_infer", help="Run mode: {freeze, bm, dry}")
     parser.add_argument("--trace_filename", default=None, help="Trace file name.")
@@ -72,7 +72,7 @@ def parse_args():
     parser.add_argument("--hparams", default="",
                         help="Comma separated k=v pairs of hyperparameters or a module containing attributes to use as hyperparameters.")
     # For saved model.
-    parser.add_argument("--saved_model_dir", default="/disk2/transformer/efficientdet/saved_model_only_feats/",
+    parser.add_argument("--saved_model_dir", default="/disk2/transformer/efficientdet2/saved_model_only_feats/",
                         help="Folder path for saved model.")
     parser.add_argument("--tflite_path", default=None, help="Path for exporting tflite file.")
 

@@ -50,68 +50,68 @@ class EfficientDetArchTest(tf.test.TestCase):
 
   def test_efficientdet_d0(self):
     self.assertSequenceEqual((3880067, 2535978423),
-                             self.build_model('efficientdet-d0', 512))
+                             self.build_model('efficientdet2-d0', 512))
 
   def test_efficientdet_d0_channel_first(self):
     self.assertSequenceEqual(
         (3880067, 2534780343),
-        self.build_model('efficientdet-d0', 512, data_format='channels_first'))
+        self.build_model('efficientdet2-d0', 512, data_format='channels_first'))
 
   def test_efficientdet_d0_511_513(self):
     self.assertSequenceEqual((3880067, 2613160475),
-                             self.build_model('efficientdet-d0', (511, 513)))
+                             self.build_model('efficientdet2-d0', (511, 513)))
 
   def test_efficientdet_d1(self):
     self.assertSequenceEqual((6625898, 6102772568),
-                             self.build_model('efficientdet-d1', 640))
+                             self.build_model('efficientdet2-d1', 640))
 
   def test_efficientdet_d1_640_1280(self):
     self.assertSequenceEqual((6625898, 12197893743),
-                             self.build_model('efficientdet-d1', (640, 1280)))
+                             self.build_model('efficientdet2-d1', (640, 1280)))
 
   def test_efficientdet_d2(self):
     self.assertSequenceEqual((8097039, 10997043492),
-                             self.build_model('efficientdet-d2', 768))
+                             self.build_model('efficientdet2-d2', 768))
 
   def test_efficientdet_d3(self):
     self.assertSequenceEqual((12032296, 24890171439),
-                             self.build_model('efficientdet-d3', 896))
+                             self.build_model('efficientdet2-d3', 896))
 
   def test_efficientdet_d4(self):
     self.assertSequenceEqual((20723675, 55185040717),
-                             self.build_model('efficientdet-d4', 1024))
+                             self.build_model('efficientdet2-d4', 1024))
 
   def test_efficientdet_d5(self):
     self.assertSequenceEqual((33653315, 135387474989),
-                             self.build_model('efficientdet-d5', 1280))
+                             self.build_model('efficientdet2-d5', 1280))
 
   def test_efficientdet_d6(self):
     self.assertSequenceEqual((51871782, 225584339747),
-                             self.build_model('efficientdet-d6', 1280))
+                             self.build_model('efficientdet2-d6', 1280))
 
   def test_efficientdet_d7(self):
     self.assertSequenceEqual((51871782, 324815496167),
-                             self.build_model('efficientdet-d7', 1536))
+                             self.build_model('efficientdet2-d7', 1536))
 
   def test_efficientdet_lite0(self):
     self.assertSequenceEqual((3243527.0, 2504524987),
-                             self.build_model('efficientdet-lite0', 512))
+                             self.build_model('efficientdet2-lite0', 512))
 
   def test_efficientdet_lite1(self):
     self.assertSequenceEqual((4248394.0, 3515526105),
-                             self.build_model('efficientdet-lite1', 512))
+                             self.build_model('efficientdet2-lite1', 512))
 
   def test_efficientdet_lite2(self):
     self.assertSequenceEqual((5252429.0, 4428869862),
-                             self.build_model('efficientdet-lite2', 512))
+                             self.build_model('efficientdet2-lite2', 512))
 
   def test_efficientdet_lite3(self):
     self.assertSequenceEqual((8350976.0, 7523573252),
-                             self.build_model('efficientdet-lite3', 512))
+                             self.build_model('efficientdet2-lite3', 512))
 
   def test_efficientdet_lite4(self):
     self.assertSequenceEqual((15131027.0, 12977398945),
-                             self.build_model('efficientdet-lite4', 512))
+                             self.build_model('efficientdet2-lite4', 512))
 
 
 class EfficientDetArchPrecisionTest(tf.test.TestCase):
@@ -121,7 +121,7 @@ class EfficientDetArchPrecisionTest(tf.test.TestCase):
     def _model_fn(inputs):
       return efficientdet_arch.efficientdet(
           inputs,
-          model_name='efficientdet-d0',
+          model_name='efficientdet2-d0',
           is_training_bn=is_training,
           precision=precision,
           image_size=512)
@@ -160,7 +160,7 @@ class EfficientDetArchPrecisionTest(tf.test.TestCase):
 class BackboneTest(tf.test.TestCase):
 
   def test_backbone_feats(self):
-    config = hparams_config.get_efficientdet_config('efficientdet-d0')
+    config = hparams_config.get_efficientdet_config('efficientdet2-d0')
     images = tf.ones([4, 224, 224, 3])
     feats = efficientdet_arch.build_backbone(images, config)
     self.assertEqual(list(feats.keys()), [0, 1, 2, 3, 4, 5])

@@ -20,10 +20,10 @@ from mmdet.models import build_detector
 from mmdet.utils import setup_multi_processes
 
 import sys
-sys.path.append('/disk2/transformer1')
-sys.path.append('/disk2/transformer1/efficientdet')
-import efficientdet.model_inspect1 as effi
-# from efficientdet import inference
+sys.path.append('/disk2/transformer')
+sys.path.append('/disk2/transformer/efficientdet')
+import efficientdet2.model_inspect1 as effi
+# from efficientdet2 import inference
 import tensorflow.compat.v1 as tf
 # import parser1
 
@@ -118,7 +118,7 @@ def parse_args():
     parser.add_argument('--local_rank', type=int, default=0)
 
     # efficientnet
-    parser.add_argument('--model_name', default='efficientdet-d7', help='Model.')
+    parser.add_argument('--model_name', default='efficientdet2-d7', help='Model.')
     parser.add_argument('--logdir', default='log', help='log directory.')
     parser.add_argument('--runmode', default='saved_model_infer', help='Run mode: {freeze, bm, dry}')
     parser.add_argument('--trace_filename', default=None, help='Trace file name.')
@@ -137,7 +137,7 @@ def parse_args():
     parser.add_argument('--hparams', default='',
                         help='Comma separated k=v pairs of hyperparameters or a module containing attributes to use as hyperparameters.')
     # For saved model.
-    parser.add_argument('--saved_model_dir', default='/disk2/transformer1/efficientdet/saved_model_only_feats/',
+    parser.add_argument('--saved_model_dir', default='/disk2/transformer1/efficientdet2/saved_model_only_feats/',
                         help='Folder path for saved model.')
     parser.add_argument('--tflite_path', default=None, help='Path for exporting tflite file.')
 

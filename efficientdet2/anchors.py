@@ -27,12 +27,12 @@ import collections
 from absl import logging
 import numpy as np
 import tensorflow.compat.v1 as tf
-# from efficientdet import utils
-# from efficientdet.object_detection import argmax_matcher
-# from efficientdet.object_detection import box_list
-# from efficientdet.object_detection import faster_rcnn_box_coder
-# from efficientdet.object_detection import region_similarity_calculator
-# from efficientdet.object_detection import target_assigner
+# from efficientdet2 import utils
+# from efficientdet2.object_detection import argmax_matcher
+# from efficientdet2.object_detection import box_list
+# from efficientdet2.object_detection import faster_rcnn_box_coder
+# from efficientdet2.object_detection import region_similarity_calculator
+# from efficientdet2.object_detection import target_assigner
 
 import utils
 from object_detection import argmax_matcher

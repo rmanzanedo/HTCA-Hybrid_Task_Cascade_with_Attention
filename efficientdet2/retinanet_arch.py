@@ -27,8 +27,8 @@ from absl import logging
 import numpy as np
 import tensorflow.compat.v1 as tf
 
-# from efficientdet import hparams_config
-# from efficientdet import utils
+# from efficientdet2 import hparams_config
+# from efficientdet2 import utils
 import hparams_config
 import utils
 

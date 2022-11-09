@@ -41,7 +41,7 @@ back to rank 4.
 
 import tensorflow.compat.v1 as tf
 
-# from efficientdet.object_detection import box_list
+# from efficientdet2.object_detection import box_list
 from object_detection import box_list
 
 

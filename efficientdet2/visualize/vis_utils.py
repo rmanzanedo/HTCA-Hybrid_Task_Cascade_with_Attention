@@ -37,8 +37,8 @@ from six.moves import range
 from six.moves import zip
 import tensorflow.compat.v1 as tf
 
-# from efficientdet.visualize import shape_utils
-# from efficientdet.visualize import standard_fields as fields
+# from efficientdet2.visualize import shape_utils
+# from efficientdet2.visualize import standard_fields as fields
 
 from visualize import shape_utils
 from visualize import standard_fields as fields

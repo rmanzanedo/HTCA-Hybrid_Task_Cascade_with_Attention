@@ -166,7 +166,7 @@ def default_detection_configs():
   h = Config()
 
   # model name.
-  h.name = 'efficientdet-d1'
+  h.name = 'efficientdet2-d1'
 
   # activation type: see activation_fn in utils.py.
   h.act_type = 'swish'
@@ -258,63 +258,63 @@ def default_detection_configs():
 
 
 efficientdet_model_param_dict = {
-    'efficientdet-d0':
+    'efficientdet2-d0':
         dict(
-            name='efficientdet-d0',
+            name='efficientdet2-d0',
             backbone_name='efficientnet-b0',
             image_size=512,
             fpn_num_filters=64,
             fpn_cell_repeats=3,
             box_class_repeats=3,
         ),
-    'efficientdet-d1':
+    'efficientdet2-d1':
         dict(
-            name='efficientdet-d1',
+            name='efficientdet2-d1',
             backbone_name='efficientnet-b1',
             image_size=640,
             fpn_num_filters=88,
             fpn_cell_repeats=4,
             box_class_repeats=3,
         ),
-    'efficientdet-d2':
+    'efficientdet2-d2':
         dict(
-            name='efficientdet-d2',
+            name='efficientdet2-d2',
             backbone_name='efficientnet-b2',
             image_size=768,
             fpn_num_filters=112,
             fpn_cell_repeats=5,
             box_class_repeats=3,
         ),
-    'efficientdet-d3':
+    'efficientdet2-d3':
         dict(
-            name='efficientdet-d3',
+            name='efficientdet2-d3',
             backbone_name='efficientnet-b3',
             image_size=896,
             fpn_num_filters=160,
             fpn_cell_repeats=6,
             box_class_repeats=4,
         ),
-    'efficientdet-d4':
+    'efficientdet2-d4':
         dict(
-            name='efficientdet-d4',
+            name='efficientdet2-d4',
             backbone_name='efficientnet-b4',
             image_size=1024,
             fpn_num_filters=224,
             fpn_cell_repeats=7,
             box_class_repeats=4,
         ),
-    'efficientdet-d5':
+    'efficientdet2-d5':
         dict(
-            name='efficientdet-d5',
+            name='efficientdet2-d5',
             backbone_name='efficientnet-b5',
             image_size=1280,
             fpn_num_filters=288,
             fpn_cell_repeats=7,
             box_class_repeats=4,
         ),
-    'efficientdet-d6':
+    'efficientdet2-d6':
         dict(
-            name='efficientdet-d6',
+            name='efficientdet2-d6',
             backbone_name='efficientnet-b6',
             image_size=1280,
             fpn_num_filters=384,
@@ -322,9 +322,9 @@ efficientdet_model_param_dict = {
             box_class_repeats=5,
             fpn_name='bifpn_sum',  # Use unweighted sum for training stability.
         ),
-    'efficientdet-d7':
+    'efficientdet2-d7':
         dict(
-            name='efficientdet-d7',
+            name='efficientdet2-d7',
             backbone_name='efficientnet-b6',
             image_size=1536,
             fpn_num_filters=384,
@@ -337,9 +337,9 @@ efficientdet_model_param_dict = {
 
 efficientdet_lite_param_dict = {
     # lite models are in progress and subject to changes.
-    'efficientdet-lite0':
+    'efficientdet2-lite0':
         dict(
-            name='efficientdet-lite0',
+            name='efficientdet2-lite0',
             backbone_name='efficientnet-lite0',
             image_size=512,
             fpn_num_filters=64,
@@ -348,9 +348,9 @@ efficientdet_lite_param_dict = {
             act_type='relu',
             use_native_resize_op=True,
         ),
-    'efficientdet-lite1':
+    'efficientdet2-lite1':
         dict(
-            name='efficientdet-lite1',
+            name='efficientdet2-lite1',
             backbone_name='efficientnet-lite1',
             image_size=640,
             fpn_num_filters=88,
@@ -359,9 +359,9 @@ efficientdet_lite_param_dict = {
             act_type='relu',
             use_native_resize_op=True,
         ),
-    'efficientdet-lite2':
+    'efficientdet2-lite2':
         dict(
-            name='efficientdet-lite2',
+            name='efficientdet2-lite2',
             backbone_name='efficientnet-lite2',
             image_size=768,
             fpn_num_filters=112,
@@ -370,9 +370,9 @@ efficientdet_lite_param_dict = {
             act_type='relu',
             use_native_resize_op=True,
         ),
-    'efficientdet-lite3':
+    'efficientdet2-lite3':
         dict(
-            name='efficientdet-lite3',
+            name='efficientdet2-lite3',
             backbone_name='efficientnet-lite3',
             image_size=896,
             fpn_num_filters=160,
@@ -381,9 +381,9 @@ efficientdet_lite_param_dict = {
             act_type='relu',
             use_native_resize_op=True,
         ),
-    'efficientdet-lite4':
+    'efficientdet2-lite4':
         dict(
-            name='efficientdet-lite4',
+            name='efficientdet2-lite4',
             backbone_name='efficientnet-lite4',
             image_size=1024,
             fpn_num_filters=224,
@@ -395,7 +395,7 @@ efficientdet_lite_param_dict = {
 }
 
 
-def get_efficientdet_config(model_name='efficientdet-d1'):
+def get_efficientdet_config(model_name='efficientdet2-d1'):
   """Get the default config for EfficientDet based on model name."""
   h = default_detection_configs()
   if model_name in efficientdet_model_param_dict:
@@ -432,9 +432,9 @@ def get_retinanet_config(model_name='retinanet-50'):
 
 
 def get_detection_config(model_name):
-  if model_name.startswith('efficientdet'):
+  if model_name.startswith('efficientdet2'):
     return get_efficientdet_config(model_name)
   elif model_name.startswith('retinanet'):
     return get_retinanet_config(model_name)
   else:
-    raise ValueError('model name must start with efficientdet or retinanet.')
+    raise ValueError('model name must start with efficientdet2 or retinanet.')

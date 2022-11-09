@@ -31,12 +31,12 @@ import tensorflow.compat.v1 as tf
 from typing import Text, Dict, Any, List, Tuple, Union
 import yaml
 
-# from efficientdet import anchors
-# from efficientdet import dataloader
-# from efficientdet import det_model_fn
-# from efficientdet import hparams_config
-# from efficientdet import utils
-# from efficientdet.visualize import vis_utils
+# from efficientdet2 import anchors
+# from efficientdet2 import dataloader
+# from efficientdet2 import det_model_fn
+# from efficientdet2 import hparams_config
+# from efficientdet2 import utils
+# from efficientdet2.visualize import vis_utils
 
 import anchors
 import dataloader
@@ -463,7 +463,7 @@ class ServingDriver(object):
   Example 1. Serving streaming image contents:
 
     driver = inference.ServingDriver(
-      'efficientdet-d0', '/tmp/efficientdet-d0', batch_size=1)
+      'efficientdet2-d0', '/tmp/efficientdet2-d0', batch_size=1)
     driver.build()
     for m in image_iterator():
       predictions = driver.serve_files([m])
@@ -477,7 +477,7 @@ class ServingDriver(object):
       imgs.append(np.array(Image.open(f)))
 
     driver = inference.ServingDriver(
-      'efficientdet-d0', '/tmp/efficientdet-d0', batch_size=len(imgs))
+      'efficientdet2-d0', '/tmp/efficientdet2-d0', batch_size=len(imgs))
     driver.build()
     predictions = driver.serve_images(imgs)
     for i in range(len(imgs)):
@@ -486,7 +486,7 @@ class ServingDriver(object):
   Example 3: another way is to use SavedModel:
 
     # step1: export a model.
-    driver = inference.ServingDriver('efficientdet-d0', '/tmp/efficientdet-d0')
+    driver = inference.ServingDriver('efficientdet2-d0', '/tmp/efficientdet2-d0')
     driver.build()
     driver.export('/tmp/saved_model_path')
 
@@ -498,7 +498,7 @@ class ServingDriver(object):
         raw_images.append(np.array(PIL.Image.open(f)))
       detections = sess.run('detections:0', {'image_arrays:0': raw_images})
       driver = inference.ServingDriver(
-        'efficientdet-d0', '/tmp/efficientdet-d0')
+        'efficientdet2-d0', '/tmp/efficientdet2-d0')
       driver.visualize(raw_images[0], detections[0])
       PIL.Image.fromarray(raw_images[0]).save(output_image_path)
   """
@@ -515,8 +515,8 @@ class ServingDriver(object):
     """Initialize the inference driver.
 
     Args:
-      model_name: target model name, such as efficientdet-d0.
-      ckpt_path: checkpoint path, such as /tmp/efficientdet-d0/.
+      model_name: target model name, such as efficientdet2-d0.
+      ckpt_path: checkpoint path, such as /tmp/efficientdet2-d0/.
       batch_size: batch size for inference.
       use_xla: Whether run with xla optimization.
       min_score_thresh: minimal score threshold for filtering predictions.
@@ -597,7 +597,7 @@ class ServingDriver(object):
     #     # 'class': class_outputs,
     # }
     ###################################################################### Original #####################################
-    class_outputs, box_outputs, fpn_feats = build_model(self.model_name, images, **params)
+    class_outputs, box_outputs, fpn_feats= build_model(self.model_name, images, **params)
     params.update(
       dict(batch_size=self.batch_size, disable_pyfun=self.disable_pyfun))
     detections = det_post_process(params, class_outputs, box_outputs, scales,
@@ -668,9 +668,10 @@ class ServingDriver(object):
                         'fpn_cells/cell_7/fnode4/op_after_combine9/bn/FusedBatchNormV3:0',
                         'fpn_cells/cell_7/fnode3/op_after_combine8/bn/FusedBatchNormV3:0',
                         'efficientnet-b6/blocks_8/Add:0']}
+    back_feats = ['efficientnet-b3/blocks_4/Add:0','efficientnet-b3/blocks_7/Add:0','efficientnet-b3/blocks_17/Add:0','efficientnet-b3/blocks_25/Add:0']
 
     features = feat_dict[self.model_name[-2:]]
-    self.outputs = [features, self.signitures['prediction']]
+    self.outputs = [features, self.signitures['prediction'],back_feats]
 
     ##################################################Original##################################################
 
@@ -864,7 +865,7 @@ class InferenceDriver(object):
 
   Example usage:
 
-   driver = inference.InferenceDriver('efficientdet-d0', '/tmp/efficientdet-d0')
+   driver = inference.InferenceDriver('efficientdet2-d0', '/tmp/efficientdet2-d0')
    driver.inference('/tmp/*.jpg', '/tmp/outputdir')
 
   """
@@ -876,8 +877,8 @@ class InferenceDriver(object):
     """Initialize the inference driver.
 
     Args:
-      model_name: target model name, such as efficientdet-d0.
-      ckpt_path: checkpoint path, such as /tmp/efficientdet-d0/.
+      model_name: target model name, such as efficientdet2-d0.
+      ckpt_path: checkpoint path, such as /tmp/efficientdet2-d0/.
       model_params: model parameters for overriding the config.
     """
     self.model_name = model_name

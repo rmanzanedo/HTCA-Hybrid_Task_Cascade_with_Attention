@@ -90,7 +90,8 @@ class TwoStageDetector(BaseDetector):
         """
         outs = ()
         # backbone
-        x = self.extract_feat(img)
+        # x = self.extract_feat(img)
+        x, scales, proposals = self.extract_feat(img)
         # rpn
         if self.with_rpn:
             rpn_outs = self.rpn_head(x)

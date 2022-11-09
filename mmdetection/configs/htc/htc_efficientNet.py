@@ -114,7 +114,7 @@ data = dict(
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
 log_config = dict(
-    interval=5,
+    interval=500,
     hooks=[
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')

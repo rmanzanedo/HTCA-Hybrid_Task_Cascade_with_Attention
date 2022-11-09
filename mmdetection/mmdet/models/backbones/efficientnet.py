@@ -19,9 +19,9 @@ from ..utils.visualize import show_image_from_tensor
 
 import sys
 sys.path.append('/disk2/htc')
-sys.path.append('/disk2/htc/efficientdet')
-# import efficientdet.model_inspect1 as effi
-from efficientdet import inference
+sys.path.append('/disk2/htc/efficientdet2')
+# import efficientdet2.model_inspect1 as effi
+from efficientdet2 import inference
 # import tensorflow.compat.v1 as tf
 import math
 
@@ -82,9 +82,12 @@ class EfficientDet(BaseModule):
     def forward(self, x):
         # show_image_from_tensor(x[0].cpu(), 'original')
         # print('input shape: {}'.format(x.shape))
-        feats, detections = self.inspector.saved_model_inference_for_transformer(x,self.driver, self.stage_names)
+        feats, detections,back_feats = self.inspector.saved_model_inference_for_transformer(x,self.driver, self.stage_names)
         feats1 = ()
-        # show_image_from_tensor(feats['p2'][0][0].unsqueeze(0), 'output_from_effi')
+        # print(back_feats['p2'][0].shape,feats['p2'][0].shape)
+        # quit()
+        show_image_from_tensor(back_feats['p3'][0][0].unsqueeze(0), 'bb_output')
+        show_image_from_tensor(feats['p3'][0][0].unsqueeze(0), 'bifpn_output')
         dim = x.shape[3] / x.shape[2]
         batch_size = len(feats['p2'])
 
@@ -100,6 +103,7 @@ class EfficientDet(BaseModule):
                     for n in range(batch_size):
                         feats_output = add_to_dict(feats_output, i, feats[i][n][:, :, 0:math.ceil(out_dim[-1] * dim)])
                         if n == batch_size - 1:
+                            print(i)
                             feats1 += (torch.stack(feats_output[i]).cuda(), )
                             feats.pop(i)
                 else:
@@ -113,6 +117,7 @@ class EfficientDet(BaseModule):
                     for n in range(batch_size):
                         feats_output = add_to_dict(feats_output, i, feats[i][n][:, 0:math.ceil(out_dim[-1] / dim), :])
                         if n == batch_size - 1:
+                            print(i)
                             feats1 += (torch.stack(feats_output[i]).cuda(), )
                             feats.pop(i)
                 else:
@@ -144,6 +149,6 @@ def build_efficientDet_backbone(cfg, inspector=None):
         use_xla=inspector.use_xla,
         model_params=inspector.model_config.as_dict())
 
-    driver.load(inspector.saved_model_dir)
+    # driver.load(inspector.saved_model_dir)
 
     return EfficientDet(inspector, driver)

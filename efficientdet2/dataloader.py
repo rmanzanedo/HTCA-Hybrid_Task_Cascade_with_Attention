@@ -20,9 +20,9 @@ https://github.com/tensorflow/tpu/blob/master/models/official/retinanet/anchors.
 
 import tensorflow.compat.v1 as tf
 
-# from efficientdet import anchors
-# from efficientdet.object_detection import preprocessor
-# from efficientdet.object_detection import tf_example_decoder
+# from efficientdet2 import anchors
+# from efficientdet2.object_detection import preprocessor
+# from efficientdet2.object_detection import tf_example_decoder
 import anchors
 from object_detection import preprocessor
 from object_detection import tf_example_decoder

@@ -546,6 +546,7 @@ class HybridTaskCascadeRoIHead(CascadeRoIHead):
         else:
             results = ms_bbox_result['ensemble']
 
+        quit()
         return results
 
     def aug_test(self, img_feats, proposal_list, img_metas, rescale=False):
