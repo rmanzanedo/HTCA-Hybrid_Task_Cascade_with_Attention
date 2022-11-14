@@ -6,7 +6,7 @@ disqus: readme
 Hybrid Task Cascade with Attention: A New Framework for Instance Segmentation
 ===
 
-[Hybrid Task Cascade with Attention](https://https://github.com/rmanzanedo/HTCA-Hybrid_Task_Cascade_with_Attention/blob/master/Hybrid_Task_Cascade_with_Attention.pdf) (HTCA) is a new framework that uses EfficientNet with BiFPN as backbone, and adds Spatial Attention Modules (SAM) to the Hybrid Task Cascade(HTC) branches to enhance the previous results on COCO datasets.
+[Hybrid Task Cascade with Attention](https://github.com/rmanzanedo/HTCA-Hybrid_Task_Cascade_with_Attention/blob/master/Hybrid_Task_Cascade_with_Attention.pdf) (HTCA) is a new framework that uses EfficientNet with BiFPN as backbone, and adds Spatial Attention Modules (SAM) to the Hybrid Task Cascade(HTC) branches to enhance the previous results on COCO datasets.
 
 This repository also has an analysis of the performance of multiple State-of-The-Art models with EfficientNet with the BiFPN as backbone.
 
